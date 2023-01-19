@@ -35,6 +35,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Manufacturer"
+				case response = "u:ManufacturerResponse"
 			}
 
 			var action: SoapAction?
@@ -70,6 +71,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Model"
+				case response = "u:ModelResponse"
 			}
 
 			var action: SoapAction?
@@ -107,6 +109,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Product"
+				case response = "u:ProductResponse"
 			}
 
 			var action: SoapAction?
@@ -136,6 +139,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Standby"
+				case response = "u:StandbyResponse"
 			}
 
 			var action: SoapAction?
@@ -185,6 +189,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:SourceCount"
+				case response = "u:SourceCountResponse"
 			}
 
 			var action: SoapAction?
@@ -214,6 +219,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:SourceXml"
+				case response = "u:SourceXmlResponse"
 			}
 
 			var action: SoapAction?
@@ -243,6 +249,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:SourceIndex"
+				case response = "u:SourceIndexResponse"
 			}
 
 			var action: SoapAction?
@@ -320,6 +327,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Source"
+				case response = "u:SourceResponse"
 			}
 
 			var action: SoapAction?
@@ -349,6 +357,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Attributes"
+				case response = "u:AttributesResponse"
 			}
 
 			var action: SoapAction?
@@ -378,6 +387,7 @@ public class OpenHomeProduct1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:SourceXmlChangeCount"
+				case response = "u:SourceXmlChangeCountResponse"
 			}
 
 			var action: SoapAction?

@@ -56,6 +56,7 @@ public class ConnectionManager1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetCurrentConnectionInfo"
+				case response = "u:GetCurrentConnectionInfoResponse"
 			}
 
 			var action: SoapAction?
@@ -87,6 +88,7 @@ public class ConnectionManager1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetProtocolInfo"
+				case response = "u:GetProtocolInfoResponse"
 			}
 
 			var action: SoapAction?
@@ -116,6 +118,7 @@ public class ConnectionManager1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetCurrentConnectionIDs"
+				case response = "u:GetCurrentConnectionIDsResponse"
 			}
 
 			var action: SoapAction?

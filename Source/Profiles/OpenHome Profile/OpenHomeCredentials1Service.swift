@@ -108,6 +108,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Get"
+				case response = "u:GetResponse"
 			}
 
 			var action: SoapAction?
@@ -139,6 +140,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Login"
+				case response = "u:LoginResponse"
 			}
 
 			var action: SoapAction?
@@ -172,6 +174,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:ReLogin"
+				case response = "u:ReLoginResponse"
 			}
 
 			var action: SoapAction?
@@ -201,6 +204,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetIds"
+				case response = "u:GetIdsResponse"
 			}
 
 			var action: SoapAction?
@@ -230,6 +234,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetPublicKey"
+				case response = "u:GetPublicKeyResponse"
 			}
 
 			var action: SoapAction?
@@ -259,6 +264,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetSequenceNumber"
+				case response = "u:GetSequenceNumberResponse"
 			}
 
 			var action: SoapAction?

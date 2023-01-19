@@ -146,6 +146,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Repeat"
+				case response = "u:RepeatResponse"
 			}
 
 			var action: SoapAction?
@@ -195,6 +196,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Shuffle"
+				case response = "u:ShuffleResponse"
 			}
 
 			var action: SoapAction?
@@ -304,6 +306,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:TransportState"
+				case response = "u:TransportStateResponse"
 			}
 
 			var action: SoapAction?
@@ -333,6 +336,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Id"
+				case response = "u:IdResponse"
 			}
 
 			var action: SoapAction?
@@ -366,6 +370,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Read"
+				case response = "u:ReadResponse"
 			}
 
 			var action: SoapAction?
@@ -397,6 +402,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:ReadList"
+				case response = "u:ReadListResponse"
 			}
 
 			var action: SoapAction?
@@ -432,6 +438,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Insert"
+				case response = "u:InsertResponse"
 			}
 
 			var action: SoapAction?
@@ -499,6 +506,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:TracksMax"
+				case response = "u:TracksMaxResponse"
 			}
 
 			var action: SoapAction?
@@ -533,6 +541,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:IdArray"
+				case response = "u:IdArrayResponse"
 			}
 
 			var action: SoapAction?
@@ -564,6 +573,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:IdArrayChanged"
+				case response = "u:IdArrayChangedResponse"
 			}
 
 			var action: SoapAction?
@@ -593,6 +603,7 @@ public class OpenHomePlaylist1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:ProtocolInfo"
+				case response = "u:ProtocolInfoResponse"
 			}
 
 			var action: SoapAction?

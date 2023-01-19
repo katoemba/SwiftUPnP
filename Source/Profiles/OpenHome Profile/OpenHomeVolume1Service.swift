@@ -39,6 +39,7 @@ public class OpenHomeVolume1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Characteristics"
+				case response = "u:CharacteristicsResponse"
 			}
 
 			var action: SoapAction?
@@ -124,6 +125,7 @@ public class OpenHomeVolume1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Volume"
+				case response = "u:VolumeResponse"
 			}
 
 			var action: SoapAction?
@@ -209,6 +211,7 @@ public class OpenHomeVolume1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Balance"
+				case response = "u:BalanceResponse"
 			}
 
 			var action: SoapAction?
@@ -294,6 +297,7 @@ public class OpenHomeVolume1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Fade"
+				case response = "u:FadeResponse"
 			}
 
 			var action: SoapAction?
@@ -343,6 +347,7 @@ public class OpenHomeVolume1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Mute"
+				case response = "u:MuteResponse"
 			}
 
 			var action: SoapAction?
@@ -372,6 +377,7 @@ public class OpenHomeVolume1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:VolumeLimit"
+				case response = "u:VolumeLimitResponse"
 			}
 
 			var action: SoapAction?

@@ -171,15 +171,15 @@ extension scdp {
         code += "\t\tstruct Body: Codable {\n"
         code += "\t\t\tenum CodingKeys: String, CodingKey {\n"
         code += "\t\t\t\tcase action = \"u:\(action.name)\"\n"
+        if action.hasOutput {
+            code += "\t\t\t\tcase response = \"u:\(action.name)Response\"\n"
+        }
         code += "\t\t\t}\n"
         code += "\n"
         
+        code += "\t\t\tvar action: SoapAction\(action.hasOutput ? "?" : "")\n"
         if action.hasOutput {
-            code += "\t\t\tvar action: SoapAction?\n"
             code += "\t\t\tvar response: \(action.name)Response?\n"
-        }
-        else {
-            code += "\t\t\tvar action: SoapAction\n"
         }
         code += "\t\t}\n"
 

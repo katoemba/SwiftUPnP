@@ -1,299 +1,183 @@
 //
-//  ContentDirectory1Object.swift
+//  StorageFolder.swift
 //
-//  Copyright (c) 2015 David Robles
 //
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
+//  Created by Berrie Kremers on 15/01/2023.
 //
-//  The above copyright notice and this permission notice shall be included in all
-//  copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//  SOFTWARE.
 
 import Foundation
-import Fuzi
-import CoreGraphics
+import XMLCoder
 
-// MARK: ContentDirectory1Object
+public struct DIDLLite: Codable {
+    public var container: [DIDLContainer]
+    public var item: [DIDLItem]
+}
 
-/// TODO: For now rooting to NSObject to expose to Objective-C, see Github issue #16
-@objcMembers public class ContentDirectory1Object: NSObject {
-    public let objectID: String
-    public let parentID: String
+public struct DIDLContainer: Codable {
+    @Attribute public var id: String
+    @Attribute public var parentID: String
+    @Attribute public var childCount: Int?
+    @Attribute public var restricted: Bool
+    @Attribute public var searchable: Bool?
+    
+    public let `class`: String
     public let title: String
-    public let rawType: String
-    public let albumArtURL: URL?
-    
-    init?(xmlElement: Fuzi.XMLElement) {
-        if let objectID = xmlElement.attr("id"),
-            let parentID = xmlElement.attr("parentID"),
-            let title = xmlElement.firstChild(tag: "title")?.stringValue,
-            let rawType = xmlElement.firstChild(tag: "class")?.stringValue {
-                self.objectID = objectID
-                self.parentID = parentID
-                self.title = title
-                self.rawType = rawType
-                
-                if let albumArtURLString = xmlElement.firstChild(tag: "albumArtURI")?.stringValue {
-                    self.albumArtURL = URL(string: albumArtURLString)
-                } else { albumArtURL = nil }
-        } else {
-            /// TODO: Remove default initializations to simply return nil, see Github issue #11
-            objectID = ""
-            parentID = ""
-            title = ""
-            rawType = ""
-            albumArtURL = nil
-            super.init()
-            return nil
-        }
-        
-        super.init()
-    }
+    public let creator: String?
+    public let date: String?
+    public let artist: [DIDLArtist]
+    public let genre: String?
+    public let albumArtURI: [URL]
+    public let artistDiscographyURI: URL?
+    public let lyricsURI: URL?
+    public let res: [DIDLRes]
 }
 
-// MARK: - ContentDirectory1Container
+public struct DIDLItem: Codable {
+    @Attribute public var id: String
+    @Attribute public var refID: String?
+    @Attribute public var parentID: String
+    @Attribute public var restricted: Bool
 
-@objcMembers public class ContentDirectory1Container: ContentDirectory1Object {
-    public let childCount: Int?
-    
-    override init?(xmlElement: Fuzi.XMLElement) {
-        self.childCount = Int(String(describing: xmlElement.attr("childCount")))
-        
-        super.init(xmlElement: xmlElement)
-    }
-}
-
-/// for objective-c type checking
-extension ContentDirectory1Object {
-    public func isContentDirectory1Container() -> Bool {
-        return self is ContentDirectory1Container
-    }
-}
-
-// MARK: - ContentDirectory1Item
-
-@objcMembers public class ContentDirectory1Item: ContentDirectory1Object {
-    public let resourceURL: URL!
-    
-    override init?(xmlElement: Fuzi.XMLElement) {
-        /// TODO: Return nil immediately instead of waiting, see Github issue #11
-        if let resourceURLString = xmlElement.firstChild(tag: "res")?.stringValue {
-            resourceURL = URL(string: resourceURLString)
-        } else { resourceURL = nil }
-        
-        super.init(xmlElement: xmlElement)
-        
-        guard resourceURL != nil else {
-            return nil
-        }
-    }
-}
-
-/// for objective-c type checking
-extension ContentDirectory1Object {
-    public func isContentDirectory1Item() -> Bool {
-        return self is ContentDirectory1Item
-    }
-}
-
-// MARK: - ContentDirectory1VideoItem
-
-@objcMembers public class ContentDirectory1VideoItem: ContentDirectory1Item {
-    public let bitrate: Int?
-    public let duration: TimeInterval?
-    public let audioChannelCount: Int?
-    public let protocolInfo: String?
-    public let resolution: CGSize?
-    public let sampleFrequency: Int?
-    public let size: Int?
-    
-    override init?(xmlElement: Fuzi.XMLElement) {
-        bitrate = Int(String(describing: xmlElement.firstChild(tag: "res")?.attr("bitrate")))
-        
-        if let durationString = xmlElement.firstChild(tag: "res")?.attr("duration") {
-            let durationComponents = durationString.components(separatedBy: ":")
-            var count: Double = 0
-            var duration: Double = 0
-            for durationComponent in durationComponents.reversed() {
-                duration += (durationComponent as NSString).doubleValue * pow(60, count)
-                count += 1
-            }
-            
-            self.duration = TimeInterval(duration)
-        } else { self.duration = nil }
-        
-        audioChannelCount = Int(String(describing: xmlElement.firstChild(tag: "res")?.attr("nrAudioChannels")))
-        
-        protocolInfo = xmlElement.firstChild(tag: "res")?.attr("protocolInfo")
-        
-        if let resolutionComponents = (xmlElement.firstChild(tag: "res")?.attr("resolution"))?.components(separatedBy: "x"),
-            let width = Int(String(describing: resolutionComponents.first)),
-            let height = Int(String(describing: resolutionComponents.last)) {
-                resolution = CGSize(width: width, height: height)
-        } else { resolution = nil }
-        
-        sampleFrequency = Int(String(describing: xmlElement.firstChild(tag: "res")?.attr("sampleFrequency")))
-        
-        size = Int(String(describing: xmlElement.firstChild(tag: "res")?.attr("size")))
-        
-        super.init(xmlElement: xmlElement)
-    }
-}
-
-/// for objective-c type checking
-extension ContentDirectory1Object {
-    public func isContentDirectory1VideoItem() -> Bool {
-        return self is ContentDirectory1VideoItem
-    }
-}
-
-class ElementHelper {
-    static func year(_ xmlElement: Fuzi.XMLElement) -> Int? {
-        if let dateString = xmlElement.firstChild(tag: "date")?.stringValue {
-            let dateComponents = dateString.components(separatedBy: "-")
-            if dateComponents.count > 0 {
-                return Int(dateComponents[0])
-            }
-        }
-        return nil
-    }
-
-    static func artist(_ xmlElement: Fuzi.XMLElement, role: String? = nil) -> String? {
-        for artistElement in xmlElement.children(tag: "artist") {
-            if artistElement.attr("role") == role {
-                return artistElement.stringValue
-            }
-        }
-        return nil
-    }
-}
-
-@objcMembers public class ContentDirectory1AudioItem: ContentDirectory1Item {
-    public let duration: TimeInterval?
-    public let bitrate: String?
-    public let bitsPerSample: String?
-    public let sampleFrequency: String?
-    public let nrAudioChannels: String?
-    public let format: String?
-    public let protocolInfo: String?
+    public let `class`: String
+    public let title: String
+    public let date: String?
     public let album: String?
-    public let artist: String?
-    public let albumArtist: String?
-    public let composer: String?
-    public let performer: String?
+    public let artist: [DIDLArtist]
     public let genre: String?
-    public let year: Int?
-    public let discNumber: Int?
-    public let trackNumber: Int?
+    public let playlist: String?
+    public let albumArtURI: [URL]
+    public let artistDiscographyURI: URL?
+    public let lyricsURI: URL?
+    public let originalTrackNumber: UInt32?
+    public let originalDiscNumber: UInt32?
+    public let res: [DIDLRes]
+}
+
+// Combination of value with attributes doesn't work (yet) with XMLCoder, revert to DynamicNodeDecoding
+public struct DIDLRes: Codable, DynamicNodeDecoding {
+    enum CodingKeys: String, CodingKey {
+        case importUri
+        case protocolInfo
+        case size
+        case duration
+        case bitrate
+        case sampleFrequency
+        case bitsPerSample
+        case nrAudioChannels
+        case colorDepth
+        case protection
+        case resolution
+        case value = ""
+    }
+
+    public let importUri: URL?
+    public let protocolInfo: String
+    public let size: UInt32?
+    public let duration: String?
+    public let bitrate: UInt?
+    public let sampleFrequency: UInt?
+    public let bitsPerSample: UInt?
+    public let nrAudioChannels: UInt?
+    public let colorDepth: UInt?
+    public let protection: String?
+    public let resolution: String?
     
-    override init?(xmlElement: Fuzi.XMLElement) {
-        let resChild = xmlElement.firstChild(tag: "res")
-        if let durationString = resChild?.attr("duration") {
-            let durationComponents = durationString.components(separatedBy: ":")
-            var count: Double = 0
-            var duration: Double = 0
-            for durationComponent in durationComponents.reversed() {
-                duration += (durationComponent as NSString).doubleValue * pow(60, count)
-                count += 1
-            }
-
-            self.duration = TimeInterval(duration)
-        } else { self.duration = nil }
-        
-        protocolInfo = resChild?.attr("protocolInfo")
-        bitrate = resChild?.attr("bitrate")
-        bitsPerSample = resChild?.attr("bitsPerSample")
-        sampleFrequency = resChild?.attr("sampleFrequency")
-        nrAudioChannels = resChild?.attr("nrAudioChannels")
-        if let components = protocolInfo?.split(separator: ":"),
-            let dlnaComponents = components.last?.split(separator: ";"),
-            let dlnaOrgPn = dlnaComponents.first?.split(separator: "="),
-            dlnaOrgPn.count > 1 {
-                format = String(dlnaOrgPn[1])
-        }
-        else {
-            format = nil
-        }
-        album = xmlElement.firstChild(tag: "album")?.stringValue
-
-        genre = xmlElement.firstChild(tag: "genre")?.stringValue
-        artist = ElementHelper.artist(xmlElement)
-        albumArtist = ElementHelper.artist(xmlElement, role: "AlbumArtist")
-        composer = ElementHelper.artist(xmlElement, role: "Composer")
-        performer = ElementHelper.artist(xmlElement, role: "Performer")
-        year = ElementHelper.year(xmlElement)
-        discNumber = xmlElement.firstChild(tag: "originalDiscNumber")?.numberValue?.intValue
-        let tn = xmlElement.firstChild(tag: "originalTrackNumber")?.numberValue?.intValue
-        if let discNumber = discNumber, var convertedTn = tn, discNumber > 1 {
-            while convertedTn > 100 {
-                convertedTn = convertedTn - 100
-            }
-            trackNumber = convertedTn
-        }
-        else {
-            trackNumber = tn
-        }
-        super.init(xmlElement: xmlElement)
-    }
-}
-
-@objcMembers public class ContentDirectory1AlbumContainer: ContentDirectory1Container {
-    public let artist: String?
-    public let composer: String?
-    public let performer: String?
-    public let genre: String?
-    public let year: Int?
+    public let value: URL
     
-    override init?(xmlElement: Fuzi.XMLElement) {
-        genre = xmlElement.firstChild(tag: "genre")?.stringValue
-        artist = ElementHelper.artist(xmlElement)
-        composer = ElementHelper.artist(xmlElement, role: "Composer")
-        performer = ElementHelper.artist(xmlElement, role: "Performer")
-        year = ElementHelper.year(xmlElement)
+    static public func nodeDecoding(for key: CodingKey) -> XMLDecoder.NodeDecoding {
+        switch key {
+        case CodingKeys.value:
+            return .element
+        default:
+            return .attribute
+        }
+    }
+
+}
+
+// Combination of value with attributes doesn't work (yet) with XMLCoder, revert to DynamicNodeDecoding
+public struct DIDLArtist: Codable, DynamicNodeDecoding {
+    enum CodingKeys: String, CodingKey {
+        case role
+        case value = ""
+    }
+
+    public let role: String?
+    public var value: String
+    
+    static public func nodeDecoding(for key: CodingKey) -> XMLDecoder.NodeDecoding {
+        switch key {
+        case CodingKeys.value:
+            return .element
+        default:
+            return .attribute
+        }
+    }
+}
+
+
+public struct BrowseDIDLResponse {
+    public let container: [DIDLContainer]
+    public let item: [DIDLItem]
+
+    public let numberReturned: UInt32
+    public let totalMatches: UInt32
+    public let updateID: UInt32
+}
+public struct SearchDIDLResponse {
+    public let container: [DIDLContainer]
+    public let item: [DIDLItem]
+
+    public let numberReturned: UInt32
+    public let totalMatches: UInt32
+    public let updateID: UInt32
+}
+public extension ContentDirectory1Service {
+    func browseDIDL(objectID: String, browseFlag: A_ARG_TYPE_BrowseFlagEnum, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String) async throws -> BrowseDIDLResponse {
+        let response = try await browse(objectID: objectID,
+                                        browseFlag: browseFlag,
+                                        filter: filter,
+                                        startingIndex: startingIndex,
+                                        requestedCount: requestedCount,
+                                        sortCriteria: sortCriteria)
         
-        super.init(xmlElement: xmlElement)
+        let decoder = XMLDecoder()
+        decoder.shouldProcessNamespaces = true
+        
+        guard let data = response.result.data(using: .utf8) else {
+            throw ServiceParseError.noValidResponse
+        }
+        let didl = try decoder.decode(DIDLLite.self, from: data)
+        
+        return BrowseDIDLResponse(container: didl.container,
+                                  item: didl.item,
+                                  numberReturned: response.numberReturned,
+                                  totalMatches: response.totalMatches,
+                                  updateID: response.updateID)
     }
-}
+    
+    func searchDIDL(containerID: String, searchCriteria: String, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String) async throws -> SearchDIDLResponse {
+        let response = try await search(containerID: containerID,
+                                        searchCriteria: searchCriteria,
+                                        filter: filter,
+                                        startingIndex: startingIndex,
+                                        requestedCount: requestedCount,
+                                        sortCriteria: sortCriteria)
+        
+        let decoder = XMLDecoder()
+        decoder.shouldProcessNamespaces = true
+        
+        guard let data = response.result.data(using: .utf8) else {
+            throw ServiceParseError.noValidResponse
+        }
+        let didl = try decoder.decode(DIDLLite.self, from: data)
 
-@objcMembers public class ContentDirectory1ArtistContainer: ContentDirectory1Container {
-    override init?(xmlElement: Fuzi.XMLElement) {
-        super.init(xmlElement: xmlElement)
-    }
-}
+        return SearchDIDLResponse(container: didl.container,
+                                  item: didl.item,
+                                  numberReturned: response.numberReturned,
+                                  totalMatches: response.totalMatches,
+                                  updateID: response.updateID)
 
-@objcMembers public class ContentDirectory1GenreContainer: ContentDirectory1Container {
-    override init?(xmlElement: Fuzi.XMLElement) {
-        super.init(xmlElement: xmlElement)
-    }
-}
-
-extension ContentDirectory1Object {
-    public func isContentDirectory1AudioItem() -> Bool {
-        return self is ContentDirectory1AudioItem
-    }
-
-    public func isContentDirectory1AlbumContainer() -> Bool {
-        return self is ContentDirectory1AlbumContainer
-    }
-
-    public func isContentDirectory1GenreContainer() -> Bool {
-        return self is ContentDirectory1GenreContainer
-    }
-
-    public func isContentDirectory1ArtistContainer() -> Bool {
-        return self is ContentDirectory1ArtistContainer
     }
 }
 

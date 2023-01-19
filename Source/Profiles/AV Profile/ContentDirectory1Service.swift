@@ -52,6 +52,7 @@ public class ContentDirectory1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Browse"
+				case response = "u:BrowseResponse"
 			}
 
 			var action: SoapAction?
@@ -81,6 +82,7 @@ public class ContentDirectory1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetSortCapabilities"
+				case response = "u:GetSortCapabilitiesResponse"
 			}
 
 			var action: SoapAction?
@@ -110,6 +112,7 @@ public class ContentDirectory1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetSystemUpdateID"
+				case response = "u:GetSystemUpdateIDResponse"
 			}
 
 			var action: SoapAction?
@@ -139,6 +142,7 @@ public class ContentDirectory1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetSearchCapabilities"
+				case response = "u:GetSearchCapabilitiesResponse"
 			}
 
 			var action: SoapAction?
@@ -186,6 +190,7 @@ public class ContentDirectory1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Search"
+				case response = "u:SearchResponse"
 			}
 
 			var action: SoapAction?

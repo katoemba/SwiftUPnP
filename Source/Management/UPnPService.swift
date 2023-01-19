@@ -105,7 +105,6 @@ public class UPnPService: Equatable, Identifiable, Hashable {
             print("Error")
             return
         }
-        print(String(decoding: data, as: UTF8.self))
         
         do {
             let decoder = XMLDecoder()
@@ -167,14 +166,12 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         if let httpBody = httpBody {
             request.httpBody = httpBody
             request.setValue("\(String(decoding: httpBody, as: UTF8.self).count)", forHTTPHeaderField: "Content-Length")
-            print(String(decoding: httpBody, as: UTF8.self))
         }
         else {
             print("Encode failed")
         }
         
         let (data, _) = try await URLSession.shared.data(for: request)
-        print(String(decoding: data, as: UTF8.self))
         
         let decoder = XMLDecoder()
         decoder.shouldProcessNamespaces = false

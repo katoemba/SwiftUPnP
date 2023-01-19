@@ -233,6 +233,7 @@ public class OpenHomeTransport1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:TransportState"
+				case response = "u:TransportStateResponse"
 			}
 
 			var action: SoapAction?
@@ -262,6 +263,7 @@ public class OpenHomeTransport1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Modes"
+				case response = "u:ModesResponse"
 			}
 
 			var action: SoapAction?
@@ -297,6 +299,7 @@ public class OpenHomeTransport1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:ModeInfo"
+				case response = "u:ModeInfoResponse"
 			}
 
 			var action: SoapAction?
@@ -330,6 +333,7 @@ public class OpenHomeTransport1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:StreamInfo"
+				case response = "u:StreamInfoResponse"
 			}
 
 			var action: SoapAction?
@@ -359,6 +363,7 @@ public class OpenHomeTransport1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:StreamId"
+				case response = "u:StreamIdResponse"
 			}
 
 			var action: SoapAction?
@@ -388,6 +393,7 @@ public class OpenHomeTransport1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Repeat"
+				case response = "u:RepeatResponse"
 			}
 
 			var action: SoapAction?
@@ -417,6 +423,7 @@ public class OpenHomeTransport1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Shuffle"
+				case response = "u:ShuffleResponse"
 			}
 
 			var action: SoapAction?

@@ -33,6 +33,7 @@ public class OpenHomeTime1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Time"
+				case response = "u:TimeResponse"
 			}
 
 			var action: SoapAction?

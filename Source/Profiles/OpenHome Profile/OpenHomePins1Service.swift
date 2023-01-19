@@ -29,6 +29,7 @@ public class OpenHomePins1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetDeviceMax"
+				case response = "u:GetDeviceMaxResponse"
 			}
 
 			var action: SoapAction?
@@ -58,6 +59,7 @@ public class OpenHomePins1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetAccountMax"
+				case response = "u:GetAccountMaxResponse"
 			}
 
 			var action: SoapAction?
@@ -87,6 +89,7 @@ public class OpenHomePins1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetModes"
+				case response = "u:GetModesResponse"
 			}
 
 			var action: SoapAction?
@@ -116,6 +119,7 @@ public class OpenHomePins1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetIdArray"
+				case response = "u:GetIdArrayResponse"
 			}
 
 			var action: SoapAction?
@@ -145,6 +149,7 @@ public class OpenHomePins1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:GetCloudConnected"
+				case response = "u:GetCloudConnectedResponse"
 			}
 
 			var action: SoapAction?
@@ -176,6 +181,7 @@ public class OpenHomePins1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:ReadList"
+				case response = "u:ReadListResponse"
 			}
 
 			var action: SoapAction?

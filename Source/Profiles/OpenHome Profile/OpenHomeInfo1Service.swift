@@ -33,6 +33,7 @@ public class OpenHomeInfo1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Counters"
+				case response = "u:CountersResponse"
 			}
 
 			var action: SoapAction?
@@ -64,6 +65,7 @@ public class OpenHomeInfo1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Track"
+				case response = "u:TrackResponse"
 			}
 
 			var action: SoapAction?
@@ -103,6 +105,7 @@ public class OpenHomeInfo1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Details"
+				case response = "u:DetailsResponse"
 			}
 
 			var action: SoapAction?
@@ -132,6 +135,7 @@ public class OpenHomeInfo1Service: UPnPService {
 		struct Body: Codable {
 			enum CodingKeys: String, CodingKey {
 				case action = "u:Metatext"
+				case response = "u:MetatextResponse"
 			}
 
 			var action: SoapAction?
