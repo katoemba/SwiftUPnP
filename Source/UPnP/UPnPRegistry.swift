@@ -7,7 +7,7 @@
 
 import Foundation
 import Combine
-import GCDWebServer
+import Swifter
 
 public class UPnPRegistry {
     public static let shared = UPnPRegistry()
@@ -25,8 +25,8 @@ public class UPnPRegistry {
         deviceRemovedSubject.eraseToAnyPublisher()
     }
     
-    private var httpServer: GCDWebServer
-    private let httpServerPort: UInt = 58123 // TODO: use a free port, don't hardcode
+    private var httpServer: HttpServer
+    private let httpServerPort: UInt16 = 58123
     private let eventCallBackPath = "/Event/\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
     private var eventCallbackUrl: URL?
     private let eventSubject = PassthroughSubject<(String, Data), Never>()
@@ -35,20 +35,20 @@ public class UPnPRegistry {
     }()
     
     init() {
-        httpServer = GCDWebServer()
-        
-        httpServer.addHandler(forMethod: "NOTIFY", path: self.eventCallBackPath, request: GCDWebServerDataRequest.self) { [weak self] (request: GCDWebServerRequest!) -> GCDWebServerResponse in
-            guard let self else { return GCDWebServerResponse() }
+        httpServer = HttpServer()
+        httpServer[eventCallBackPath] = { [weak self] request in
+            guard let self else { return HttpResponse.internalServerError(.text("Self released")) }
+            guard request.method.lowercased() == "notify" else { return HttpResponse.internalServerError(.text("Only handling NOTIFY")) }
             
-            if let dataRequest = request as? GCDWebServerDataRequest {
-                let headerFields = Dictionary(uniqueKeysWithValues: dataRequest.headers.map { key, value in (key.uppercased(), value) })
-                if let sid = headerFields["SID"] {
-                    self.eventSubject.send((sid, dataRequest.data))
-                }
+            let headerFields = Dictionary(uniqueKeysWithValues: request.headers.map { key, value in (key.uppercased(), value) })
+            if let sid = headerFields["SID"] {
+                let data = Data(fromArray: request.body)
+                self.eventSubject.send((sid, data))
             }
             
-            return GCDWebServerResponse()
+            return HttpResponse.ok(.text(""))
         }
+
         Task {
             await startHTTPServer()
         }
@@ -68,8 +68,7 @@ public class UPnPRegistry {
     
     @MainActor
     private func startHTTPServer() {
-        let options: [String: Any] = [GCDWebServerOption_Port: httpServerPort]
-        try? httpServer.start(options: options)
+        try? httpServer.start(httpServerPort, forceIPv4: true)
         
         eventCallbackUrl = callbackUrl()
         if let eventCallbackUrl = eventCallbackUrl {
@@ -83,15 +82,15 @@ public class UPnPRegistry {
     
     @MainActor
     private func stopHTTPServer() {
-        if httpServer.isRunning {
+        if httpServer.operating {
             httpServer.stop()
             eventCallbackUrl = nil
         }
     }
     
     func callbackUrl() -> URL? {
-        if let serverURL = httpServer.serverURL {
-            return URL(string: eventCallBackPath, relativeTo: serverURL)
+        if let ipAddress = IPHelper.getInterfaceIPAddress(interfaceNames: ["en0", "en1"]) {
+            return  URL(string: "http://\(ipAddress):\(httpServerPort)\(eventCallBackPath)")
         }
         return nil
     }
@@ -250,3 +249,4 @@ public class UPnPRegistry {
         }
     }
 }
+
