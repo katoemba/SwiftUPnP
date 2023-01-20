@@ -237,6 +237,24 @@ public class UPnPRegistry {
                                             serviceId: deviceService.serviceId,
                                             eventPublisher: eventPublisher,
                                             eventCallbackUrl: eventCallbackUrl)
+        case "urn:schemas-upnp-org:service:AVTransport:1":
+            return AVTransport1Service(device: device,
+                                       controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
+                                       scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
+                                       eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL)!,
+                                       serviceType: deviceService.serviceType,
+                                       serviceId: deviceService.serviceId,
+                                       eventPublisher: eventPublisher,
+                                       eventCallbackUrl: eventCallbackUrl)
+        case "urn:schemas-upnp-org:service:RenderingControl:1":
+            return RenderingControl1Service(device: device,
+                                            controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
+                                            scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
+                                            eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL)!,
+                                            serviceType: deviceService.serviceType,
+                                            serviceId: deviceService.serviceId,
+                                            eventPublisher: eventPublisher,
+                                            eventCallbackUrl: eventCallbackUrl)
         default:
             return UPnPService(device: device,
                                controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,

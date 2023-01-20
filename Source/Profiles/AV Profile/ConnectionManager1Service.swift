@@ -12,7 +12,7 @@ public class ConnectionManager1Service: UPnPService {
 	}
 
 	public enum A_ARG_TYPE_ConnectionStatusEnum: String, Codable {
-		case oK = "OK"
+		case ok = "OK"
 		case contentFormatMismatch = "ContentFormatMismatch"
 		case insufficientBandwidth = "InsufficientBandwidth"
 		case unreliableChannel = "UnreliableChannel"
