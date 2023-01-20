@@ -48,7 +48,7 @@ extension scdp {
             if enumVariable.useEnum {
                 code += "\tpublic enum \(enumVariable.swiftType): String, Codable {\n"
                 for value in enumVariable.allowedValueList?.allowedValue ?? [] {
-                    code += "\t\tcase \(value.uncapitalizeFirstLetter()) = \"\(value)\"\n"
+                    code += "\t\tcase \(value.processCase()) = \"\(value)\"\n"
                 }
                 code += "\t}\n"
                 code += "\n"
@@ -291,5 +291,39 @@ extension String {
             return "`repeat`"
         }
         return variable
+    }
+    
+    func processCase() -> String {
+        var processed = replacingOccurrences(of: "-", with: " ")
+        processed = processed.replacingOccurrences(of: "_", with: " ")
+        processed = processed.replacingOccurrences(of: "+", with: " PLUS ")
+        processed = processed.replacingOccurrences(of: "1", with: "ONE ")
+        processed = processed.replacingOccurrences(of: "2", with: "TWO ")
+        processed = processed.replacingOccurrences(of: "3", with: "THREE ")
+        processed = processed.replacingOccurrences(of: "4", with: "FOUR ")
+        processed = processed.replacingOccurrences(of: "5", with: "FIVE ")
+        processed = processed.replacingOccurrences(of: "6", with: "SIX ")
+        processed = processed.replacingOccurrences(of: "7", with: "SEVEN ")
+        processed = processed.replacingOccurrences(of: "8", with: "EIGHT ")
+        processed = processed.replacingOccurrences(of: "9", with: "NINE ")
+        processed = processed.replacingOccurrences(of: "0", with: "ZERO ")
+        if processed.contains(" ") || processed.uppercased() == processed {
+            processed = processed.capitalized
+            processed = processed.replacingOccurrences(of: " ", with: "")
+            if let first = processed.first?.lowercased() {
+                processed = first + processed.dropFirst(1)
+            }
+        }
+        else {
+            if let first = processed.first?.lowercased() {
+                processed = first + processed.dropFirst(1)
+            }
+        }
+        processed = processed.replacingOccurrences(of: ":", with: "")
+        if processed == "repeat" {
+            processed = "`repeat`"
+        }
+        
+        return processed
     }
 }
