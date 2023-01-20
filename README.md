@@ -11,12 +11,63 @@ SSDP discovery is done using the modern Network framework. Only devices are disc
 based on the description of the device.
 (Dis)appearance of devices on the network is published via Combine publishers defined in UPnPRegistery: deviceAdded and deviceRemoved. When a device is published on the subject, it's fully loaded with all included service definitions.
 
+```swift
+    private let openHomeRegistry = UPnPRegistry.shared
+    private var cancellables = Set<AnyCancellable>()
+
+    public init() {
+        openHomeRegistry.deviceAdded
+            .sink {
+                print("Detected device \($0.deviceDefinition.device.friendlyName) of type \($0.deviceType)")
+            }
+            .store(in: &cancellables)
+        
+        openHomeRegistry.deviceRemoved
+            .sink {
+                print("Removed device \($0.deviceDefinition.device.friendlyName) of type \($0.deviceType)")
+            }
+            .store(in: &cancellables)
+    }
+
+    public func startListening() {
+        try? openHomeRegistry.startDiscovery()
+    }
+    
+    public func stopListening() {
+        openHomeRegistry.stopDiscovery()
+    }
+```
+
 ## Actions
 UPnP actions and responses are strongly typed, no key-value pairs. This is done through Codable structs. All action calls are implemented as async functions.
+
+```swift
+    let device: UPnPDevice
+    
+    try? await device.openHomeVolume1Service?.setVolume(value: 50)
+```
 
 ## State changes
 Every service implementation has a Combine publisher stateSubject. When the service subscribes to state changes via subscribeToEvents(), those events will be delivered on the stateSubject as strongly typed structs.
 To receive state changes, a small webserver will be run (Swifter).
+
+```swift
+    let device: UPnPDevice
+    var cancellables = Set<AnyCancellable>()
+
+    if let service = device.openHomeVolume1Service {
+        service.stateSubject
+            .sink {
+                print("Received volume change, volume = \($0.volume ?? -1)")
+            }
+            .store(in: &cancellables)
+            
+        Task {
+            await service.subscribeToEvents()
+        }
+    }
+```
+
 
 ## Service generator
 A command line tool to generate swift based service implementations from a xml-based <scdp> file is included. This is used to generate
