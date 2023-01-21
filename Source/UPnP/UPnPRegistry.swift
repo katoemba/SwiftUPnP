@@ -19,11 +19,11 @@ public class UPnPRegistry {
     public var devices = [UPnPDevice]()
     private var deviceAddedSubject = PassthroughSubject<UPnPDevice, Never>()
     public var deviceAdded: AnyPublisher<UPnPDevice, Never> {
-        deviceAddedSubject.eraseToAnyPublisher()
+        deviceAddedSubject.receive(on: RunLoop.main).eraseToAnyPublisher()
     }
     private var deviceRemovedSubject = PassthroughSubject<UPnPDevice, Never>()
     public var deviceRemoved: AnyPublisher<UPnPDevice, Never> {
-        deviceRemovedSubject.eraseToAnyPublisher()
+        deviceRemovedSubject.receive(on: RunLoop.main).eraseToAnyPublisher()
     }
     
     private var httpServer: HttpServer
