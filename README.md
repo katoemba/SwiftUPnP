@@ -2,9 +2,10 @@
 A modern Swift based UPnP implementation.
 
 Key features that make this easy to use in a modern swift environment:
-- Based on async/await.
-- Combine for continuous state updates.
+- Concurrency and thread safety through async/await and @MainActor
+- Uses Combine for stream-based state updates.
 - Strongly typed services, based on Codable structs.
+- Structured logging through the os.log framework.
 
 ## System requirements
 The minimum requirements for the SwiftUPnP library are:
@@ -14,7 +15,7 @@ The minimum requirements for the SwiftUPnP library are:
 The minimum requirement for the UPnPCodeGenerator executable is macOS 13 Ventura.
 
 ## Device discovery
-SSDP discovery is done using the modern Network framework. Only devices are discovered, the available sources are loaded
+SSDP discovery is done using the standard Apple Network framework. Only devices are discovered, the available sources are loaded
 based on the description of the device.
 (Dis)appearance of devices on the network is published via Combine publishers defined in UPnPRegistery: deviceAdded and deviceRemoved. When a device is published on the subject, it's fully loaded with all included service definitions.
 
