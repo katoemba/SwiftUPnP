@@ -7,10 +7,48 @@
 
 import Foundation
 import XMLCoder
+import os.log
 
 public struct DIDLLite: Codable {
-    public var container: [DIDLContainer]
-    public var item: [DIDLItem]
+    public let container: [DIDLContainer]
+    public let item: [DIDLItem]
+    public let desc: [DIDLDescription]
+    
+    public static func from(_ metadata: String) -> DIDLLite? {
+        guard let data = metadata.data(using: .utf8) else { return nil }
+        
+        do {
+            let decoder = XMLDecoder()
+            decoder.shouldProcessNamespaces = true
+            
+            return try decoder.decode(DIDLLite.self, from: data)
+        }
+        catch DecodingError.dataCorrupted(let context) {
+            Logger.swiftUPnP.error("\(metadata)")
+            Logger.swiftUPnP.error("\(context.debugDescription)")
+        } catch DecodingError.keyNotFound(let key, let context) {
+            Logger.swiftUPnP.error("\(metadata)")
+            Logger.swiftUPnP.error("\(key.stringValue) was not found, \(context.debugDescription)")
+        } catch DecodingError.typeMismatch(let type, let context) {
+            Logger.swiftUPnP.error("\(metadata)")
+            Logger.swiftUPnP.error("\(type) was expected, \(context.debugDescription)")
+        } catch DecodingError.valueNotFound(let type, let context) {
+            Logger.swiftUPnP.error("\(metadata)")
+            Logger.swiftUPnP.error("no value was found for \(type), \(context.debugDescription)")
+        } catch {
+            Logger.swiftUPnP.error("\(metadata)")
+            Logger.swiftUPnP.error("Unknown error \(error.localizedDescription)")
+        }
+        
+        return nil
+    }
+    
+    public static func firstItem(_ metadata: String) -> DIDLItem? {
+        guard let didl = from(metadata) else { return nil }
+        guard didl.item.count > 0 else { return nil }
+        
+        return didl.item[0]
+    }
 }
 
 public struct DIDLContainer: Codable {
@@ -20,6 +58,10 @@ public struct DIDLContainer: Codable {
     @Attribute public var restricted: Bool
     @Attribute public var searchable: Bool?
     
+    public let container: [DIDLContainer]
+    public let item: [DIDLItem]
+    public let desc: [DIDLDescription]
+
     public let `class`: String
     public let title: String
     public let creator: String?
@@ -33,13 +75,15 @@ public struct DIDLContainer: Codable {
 }
 
 public struct DIDLItem: Codable {
-    @Attribute public var id: String
+    @Attribute public var id: String?
     @Attribute public var refID: String?
-    @Attribute public var parentID: String
-    @Attribute public var restricted: Bool
+    @Attribute public var parentID: String?
+    @Attribute public var restricted: Bool?
+    @Attribute public var searchable: Bool?
 
     public let `class`: String
     public let title: String
+    public let orig: String?
     public let date: String?
     public let album: String?
     public let artist: [DIDLArtist]
@@ -51,6 +95,30 @@ public struct DIDLItem: Codable {
     public let originalTrackNumber: UInt32?
     public let originalDiscNumber: UInt32?
     public let res: [DIDLRes]
+    public let desc: [DIDLDescription]
+}
+
+public struct DIDLDescription: Codable, DynamicNodeDecoding {
+    enum CodingKeys: String, CodingKey {
+        case id
+        case type
+        case nameSpace
+        case value = ""
+    }
+
+    public let id: String
+    public let type: String?
+    public let nameSpace: URL
+    public let value: String
+    
+    static public func nodeDecoding(for key: CodingKey) -> XMLDecoder.NodeDecoding {
+        switch key {
+        case CodingKeys.value:
+            return .element
+        default:
+            return .attribute
+        }
+    }
 }
 
 // Combination of value with attributes doesn't work (yet) with XMLCoder, revert to DynamicNodeDecoding
@@ -71,7 +139,7 @@ public struct DIDLRes: Codable, DynamicNodeDecoding {
     }
 
     public let importUri: URL?
-    public let protocolInfo: String
+    public let protocolInfo: String?
     public let size: UInt32?
     public let duration: String?
     public let bitrate: UInt?
@@ -103,7 +171,7 @@ public struct DIDLArtist: Codable, DynamicNodeDecoding {
     }
 
     public let role: String?
-    public var value: String
+    public let value: String
     
     static public func nodeDecoding(for key: CodingKey) -> XMLDecoder.NodeDecoding {
         switch key {
@@ -177,7 +245,6 @@ public extension ContentDirectory1Service {
                                   numberReturned: response.numberReturned,
                                   totalMatches: response.totalMatches,
                                   updateID: response.updateID)
-
     }
 }
 
