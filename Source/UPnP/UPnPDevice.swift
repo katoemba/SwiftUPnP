@@ -7,6 +7,7 @@
 
 import Foundation
 import XMLCoder
+import os.log
 
 public class UPnPDevice: Equatable, Identifiable, Hashable {
     public let uuid: String
@@ -54,27 +55,26 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
         request.httpMethod = "GET"
         
         guard let (data, _) = try? await URLSession.shared.data(for: request) else {
-            print("Error")
+            Logger.swiftUPnP.error("Error: couldn't load device description from \(self.url.absoluteString)")
             return
         }
-        print(String(decoding: data, as: UTF8.self))
         
         do {
             let decoder = XMLDecoder()
             decoder.shouldProcessNamespaces = false
             deviceDefinition = try decoder.decode(UPnPDeviceDefinition.self, from: data)
-            print("Device parsed \(deviceDefinition!.device.friendlyName) - \(deviceDefinition!.device.deviceType  )")            
+            Logger.swiftUPnP.debug("Device parsed \(self.deviceDefinition!.device.friendlyName) - \(self.deviceDefinition!.device.deviceType  )")
         }
         catch DecodingError.dataCorrupted(let context) {
-            print(context.debugDescription)
+            Logger.swiftUPnP.error("\(context.debugDescription)")
         } catch DecodingError.keyNotFound(let key, let context) {
-            print("\(key.stringValue) was not found, \(context.debugDescription)")
+            Logger.swiftUPnP.error("\(key.stringValue) was not found, \(context.debugDescription)")
         } catch DecodingError.typeMismatch(let type, let context) {
-            print("\(type) was expected, \(context.debugDescription)")
+            Logger.swiftUPnP.error("\(type) was expected, \(context.debugDescription)")
         } catch DecodingError.valueNotFound(let type, let context) {
-            print("no value was found for \(type), \(context.debugDescription)")
+            Logger.swiftUPnP.error("no value was found for \(type), \(context.debugDescription)")
         } catch {
-            print("I know not this error")
+            Logger.swiftUPnP.error("Unknown error \(error.localizedDescription)")
         }
     }    
 }

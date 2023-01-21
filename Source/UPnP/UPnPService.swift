@@ -8,6 +8,7 @@
 import Foundation
 import XMLCoder
 import Combine
+import os.log
 
 public class UPnPService: Equatable, Identifiable, Hashable {
     public enum SubscriptionStatus {
@@ -102,7 +103,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         request.httpMethod = "GET"
         
         guard let (data, _) = try? await URLSession.shared.data(for: request) else {
-            print("Error")
+            Logger.swiftUPnP.error("Couldn't load service definition from \(self.scpdUrl.absoluteString)")
             return
         }
         
@@ -110,20 +111,20 @@ public class UPnPService: Equatable, Identifiable, Hashable {
             let decoder = XMLDecoder()
             decoder.shouldProcessNamespaces = false
             serviceDefinition = try decoder.decode(UPnPServiceDefinition.self, from: data)
-            print("Service parsed with \(serviceDefinition?.actionList.action.count ?? 0) actions")
+            Logger.swiftUPnP.debug("Service parsed with \(self.serviceDefinition?.actionList.action.count ?? 0) actions")
         }
         catch DecodingError.dataCorrupted(let context) {
-            print(context.debugDescription)
+            Logger.swiftUPnP.error("\(context.debugDescription)")
         } catch DecodingError.keyNotFound(let key, let context) {
-            print("\(key.stringValue) was not found, \(context.debugDescription)")
+            Logger.swiftUPnP.error("\(key.stringValue) was not found, \(context.debugDescription)")
         } catch DecodingError.typeMismatch(let type, let context) {
-            print("\(type) was expected, \(context.debugDescription)")
+            Logger.swiftUPnP.error("\(type) was expected, \(context.debugDescription)")
         } catch DecodingError.valueNotFound(let type, let context) {
-            print("no value was found for \(type), \(context.debugDescription)")
+            Logger.swiftUPnP.error("no value was found for \(type), \(context.debugDescription)")
         } catch {
-            print("I know not this error")
+            Logger.swiftUPnP.error("Unknown error \(error.localizedDescription)")
         }
-        
+
     }
     
     internal func post(action: String, envelope: Codable) async throws {
@@ -133,20 +134,15 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         request.setValue("\"\(id)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
         
         let encoder = XMLEncoder()
-        let httpBody = try? encoder.encode(envelope,
-                                           withRootKey: "s:Envelope",
-                                           rootAttributes: ["xmlns:s": "http://schemas.xmlsoap.org/soap/envelope/",
-                                                            "s:encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"],
-                                           header: XMLHeader(version: 1.0, encoding: "UTF-8"))
-        
-        if let httpBody = httpBody {
-            request.httpBody = httpBody
-            request.setValue("\(String(decoding: httpBody, as: UTF8.self).count)", forHTTPHeaderField: "Content-Length")
-        }
-        else {
-            print("Encode failed")
-        }
-        
+        let httpBody = try encoder.encode(envelope,
+                                          withRootKey: "s:Envelope",
+                                          rootAttributes: ["xmlns:s": "http://schemas.xmlsoap.org/soap/envelope/",
+                                                           "s:encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"],
+                                          header: XMLHeader(version: 1.0, encoding: "UTF-8"))
+    
+        request.httpBody = httpBody
+        request.setValue("\(String(decoding: httpBody, as: UTF8.self).count)", forHTTPHeaderField: "Content-Length")
+
         let (_, _) = try await URLSession.shared.data(for: request)
     }
     
@@ -157,22 +153,17 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         request.setValue("\"\(id)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
         
         let encoder = XMLEncoder()
-        let httpBody = try? encoder.encode(envelope,
-                                           withRootKey: "s:Envelope",
-                                           rootAttributes: ["xmlns:s": "http://schemas.xmlsoap.org/soap/envelope/",
-                                                            "s:encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"],
-                                           header: XMLHeader(version: 1.0, encoding: "UTF-8"))
-        
-        if let httpBody = httpBody {
-            request.httpBody = httpBody
-            request.setValue("\(String(decoding: httpBody, as: UTF8.self).count)", forHTTPHeaderField: "Content-Length")
-        }
-        else {
-            print("Encode failed")
-        }
-        
+        let httpBody = try encoder.encode(envelope,
+                                          withRootKey: "s:Envelope",
+                                          rootAttributes: ["xmlns:s": "http://schemas.xmlsoap.org/soap/envelope/",
+                                                           "s:encodingStyle": "http://schemas.xmlsoap.org/soap/encoding/"],
+                                          header: XMLHeader(version: 1.0, encoding: "UTF-8"))
+    
+        request.httpBody = httpBody
+        request.setValue("\(String(decoding: httpBody, as: UTF8.self).count)", forHTTPHeaderField: "Content-Length")
+
         let (data, _) = try await URLSession.shared.data(for: request)
-        
+                
         let decoder = XMLDecoder()
         decoder.shouldProcessNamespaces = false
         
@@ -210,7 +201,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
 //                    }
                 }
                 
-                print("Successfully subscribed for: \(timeout) seconds sid: \(subscriptionId)")
+                Logger.swiftUPnP.debug("Successfully subscribed for: \(timeout) seconds sid: \(subscriptionId)")
                 await setSubcriptionStatus(.subscribed, subscriptionId: subscriptionId)
             }
         }
@@ -245,7 +236,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
                     }
                 }
                 
-                print("Successfully renewed for: \(timeout) seconds sid: \(subscriptionId)")
+                Logger.swiftUPnP.debug("Successfully renewed for: \(timeout) seconds sid: \(subscriptionId)")
                 await self.setSubcriptionStatus(.subscribed, subscriptionId: subscriptionId)
             }
         }
@@ -262,12 +253,12 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         guard let (_, response) = try? await URLSession.shared.data(for: request),
               (response as? HTTPURLResponse)?.statusCode ?? 0 >= 200,
               (response as? HTTPURLResponse)?.statusCode ?? 0 <= 204 else {
-            print("Unsuccessfully unsubscribed sid: \(subscriptionId)")
+            Logger.swiftUPnP.error("Unsuccessfully unsubscribed sid: \(self.subscriptionId ?? "-")")
             await self.setSubcriptionStatus(.failed, subscriptionId: nil)
             return
         }
         
-        print("Successfully unsubscribed sid: \(subscriptionId)")
+        Logger.swiftUPnP.debug("Successfully unsubscribed sid: \(self.subscriptionId ?? "-")")
         await self.setSubcriptionStatus(.unsubscribed, subscriptionId: nil)
     }
 }

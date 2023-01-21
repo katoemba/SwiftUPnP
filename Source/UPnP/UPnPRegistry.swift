@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import Swifter
+import os.log
 
 public class UPnPRegistry {
     public static let shared = UPnPRegistry()
@@ -26,7 +27,7 @@ public class UPnPRegistry {
     }
     
     private var httpServer: HttpServer
-    private let httpServerPort: UInt16 = 58123
+    private let httpServerPort: UInt16
     private let eventCallBackPath = "/Event/\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
     private var eventCallbackUrl: URL?
     private let eventSubject = PassthroughSubject<(String, Data), Never>()
@@ -35,6 +36,7 @@ public class UPnPRegistry {
     }()
     
     init() {
+        httpServerPort = IPHelper.freePortFromRange(range: 51000..<51099)
         httpServer = HttpServer()
         httpServer[eventCallBackPath] = { [weak self] request in
             guard let self else { return HttpResponse.internalServerError(.text("Self released")) }
@@ -68,15 +70,21 @@ public class UPnPRegistry {
     
     @MainActor
     private func startHTTPServer() {
-        try? httpServer.start(httpServerPort, forceIPv4: true)
-        
-        eventCallbackUrl = callbackUrl()
-        if let eventCallbackUrl = eventCallbackUrl {
-            for device in devices {
-                for service in device.services {
-                    service.eventCallbackUrl = eventCallbackUrl
+        do {
+            try httpServer.start(httpServerPort)
+            
+            eventCallbackUrl = callbackUrl()
+            if let eventCallbackUrl = eventCallbackUrl {
+                for device in devices {
+                    for service in device.services {
+                        service.eventCallbackUrl = eventCallbackUrl
+                    }
                 }
             }
+        }
+        catch {
+            Logger.swiftUPnP.error("Couldn't start http server on port \(self.httpServerPort)")
+            Logger.swiftUPnP.error("\(error.localizedDescription)")
         }
     }
     

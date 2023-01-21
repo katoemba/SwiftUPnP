@@ -8,6 +8,7 @@
 import Foundation
 import Network
 import Combine
+import os.log
 
 public enum UPnPError: Error {
     case alreadyConnected
@@ -34,11 +35,11 @@ public class SSDPDiscovery {
         let connectionGroup = NWConnectionGroup(with: multicastGroup, using: .udp)
         
         connectionGroup.stateUpdateHandler = { (newState) in
-            print("Connection group entered state \(String(describing: newState))")
+            Logger.swiftUPnP.debug("Connection group entered state \(String(describing: newState))")
             
             switch newState {
             case let .failed(error):
-                print(error.localizedDescription)
+                Logger.swiftUPnP.error("\(error.localizedDescription)")
                 break
             default:
                 break
@@ -73,7 +74,7 @@ public class SSDPDiscovery {
                 connectionGroup.send(content: data) { error in
                     if let error = error as? NSError {
                         self.stopDiscovery()
-                        print("\(error.localizedDescription)")
+                        Logger.swiftUPnP.error("\(error.localizedDescription)")
                     }
                 }
             }
