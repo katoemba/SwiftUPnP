@@ -6,6 +6,13 @@ Key features that make this easy to use in a modern swift environment:
 - Combine for continuous state updates.
 - Strongly typed services, based on Codable structs.
 
+## System requirements
+The minimum requirements for the SwiftUPnP library are:
+- iOS 14
+- macOS 11 Big Sur
+
+The minimum requirement for the UPnPCodeGenerator executable is macOS 13 Ventura.
+
 ## Device discovery
 SSDP discovery is done using the modern Network framework. Only devices are discovered, the available sources are loaded
 based on the description of the device.
