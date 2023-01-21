@@ -130,8 +130,8 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     internal func post(action: String, envelope: Codable) async throws {
         var request = URLRequest(url: controlUrl)
         request.httpMethod = "POST"
-        request.setValue("text/xml", forHTTPHeaderField: "Content-Type")
-        request.setValue("\"\(id)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
+        request.setValue("text/xml; charset=\"utf-8\"", forHTTPHeaderField: "Content-Type")
+        request.setValue("\"\(serviceType)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
         
         let encoder = XMLEncoder()
         let httpBody = try encoder.encode(envelope,
@@ -149,8 +149,8 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     internal func postWithResult<T: Decodable>(action: String, envelope: Codable) async throws -> T {
         var request = URLRequest(url: controlUrl)
         request.httpMethod = "POST"
-        request.setValue("text/xml", forHTTPHeaderField: "Content-Type")
-        request.setValue("\"\(id)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
+        request.setValue("text/xml; charset=\"utf-8\"", forHTTPHeaderField: "Content-Type")
+        request.setValue("\"\(serviceType)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
         
         let encoder = XMLEncoder()
         let httpBody = try encoder.encode(envelope,
