@@ -60,7 +60,7 @@ struct Argument: Decodable {
     }
     let name: String
     let direction: Direction
-    let relatedStateVariable: String
+    let relatedStateVariable: String    
 }
 
 struct ServiceStateTable: Decodable {

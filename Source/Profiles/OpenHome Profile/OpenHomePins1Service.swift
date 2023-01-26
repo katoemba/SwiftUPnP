@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class OpenHomePins1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -17,6 +18,12 @@ public class OpenHomePins1Service: UPnPService {
 		}
 
 		public var deviceMax: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetDeviceMaxResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))deviceMax: \(deviceMax)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getDeviceMax() async throws -> GetDeviceMaxResponse {
 		struct SoapAction: Codable {
@@ -47,6 +54,12 @@ public class OpenHomePins1Service: UPnPService {
 		}
 
 		public var accountMax: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetAccountMaxResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))accountMax: \(accountMax)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getAccountMax() async throws -> GetAccountMaxResponse {
 		struct SoapAction: Codable {
@@ -77,6 +90,12 @@ public class OpenHomePins1Service: UPnPService {
 		}
 
 		public var modes: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetModesResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))modes: '\(modes)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getModes() async throws -> GetModesResponse {
 		struct SoapAction: Codable {
@@ -107,6 +126,12 @@ public class OpenHomePins1Service: UPnPService {
 		}
 
 		public var idArray: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetIdArrayResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))idArray: '\(idArray)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getIdArray() async throws -> GetIdArrayResponse {
 		struct SoapAction: Codable {
@@ -137,6 +162,12 @@ public class OpenHomePins1Service: UPnPService {
 		}
 
 		public var cloudConnected: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetCloudConnectedResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))cloudConnected: \(cloudConnected == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getCloudConnected() async throws -> GetCloudConnectedResponse {
 		struct SoapAction: Codable {
@@ -167,6 +198,12 @@ public class OpenHomePins1Service: UPnPService {
 		}
 
 		public var list: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ReadListResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))list: '\(list)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func readList(ids: String) async throws -> ReadListResponse {
 		struct SoapAction: Codable {
@@ -387,6 +424,16 @@ extension OpenHomePins1Service {
 		public var modes: String?
 		public var idArray: String?
 		public var cloudConnected: Bool?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))OpenHomePins1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))deviceMax: \(deviceMax ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))accountMax: \(accountMax ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))modes: '\(modes ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))idArray: '\(idArray ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))cloudConnected: \((cloudConnected == nil) ? "nil" : (cloudConnected! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

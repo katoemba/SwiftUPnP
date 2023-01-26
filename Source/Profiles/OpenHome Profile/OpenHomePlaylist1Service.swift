@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class OpenHomePlaylist1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -134,6 +135,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		}
 
 		public var value: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))RepeatResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func `repeat`() async throws -> RepeatResponse {
 		struct SoapAction: Codable {
@@ -184,6 +191,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		}
 
 		public var value: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ShuffleResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func shuffle() async throws -> ShuffleResponse {
 		struct SoapAction: Codable {
@@ -294,6 +307,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		}
 
 		public var value: TransportStateEnum
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))TransportStateResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func transportState() async throws -> TransportStateResponse {
 		struct SoapAction: Codable {
@@ -324,6 +343,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		}
 
 		public var value: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))IdResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func id() async throws -> IdResponse {
 		struct SoapAction: Codable {
@@ -356,6 +381,13 @@ public class OpenHomePlaylist1Service: UPnPService {
 
 		public var uri: String
 		public var metadata: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ReadResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))uri: '\(uri)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))metadata: '\(metadata)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func read(id: UInt32) async throws -> ReadResponse {
 		struct SoapAction: Codable {
@@ -388,6 +420,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		}
 
 		public var trackList: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ReadListResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))trackList: '\(trackList)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func readList(idList: String) async throws -> ReadListResponse {
 		struct SoapAction: Codable {
@@ -420,6 +458,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		}
 
 		public var newId: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))InsertResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))newId: \(newId)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func insert(afterId: UInt32, uri: String, metadata: String) async throws -> InsertResponse {
 		struct SoapAction: Codable {
@@ -494,6 +538,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		}
 
 		public var value: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))TracksMaxResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func tracksMax() async throws -> TracksMaxResponse {
 		struct SoapAction: Codable {
@@ -529,6 +579,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		public var array: [UInt32]? {
 			arrayData?.toArray(type: UInt32.self).map { $0.bigEndian }
 		}
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))IdArrayResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))token: \(token)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func idArray() async throws -> IdArrayResponse {
 		struct SoapAction: Codable {
@@ -559,6 +615,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		}
 
 		public var value: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))IdArrayChangedResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func idArrayChanged(token: UInt32) async throws -> IdArrayChangedResponse {
 		struct SoapAction: Codable {
@@ -591,6 +653,12 @@ public class OpenHomePlaylist1Service: UPnPService {
 		}
 
 		public var value: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ProtocolInfoResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: '\(value)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func protocolInfo() async throws -> ProtocolInfoResponse {
 		struct SoapAction: Codable {
@@ -640,6 +708,17 @@ extension OpenHomePlaylist1Service {
 		}
 		public var tracksMax: UInt32?
 		public var protocolInfo: String?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))OpenHomePlaylist1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))transportState: \(transportState?.rawValue ?? "nil")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))`repeat`: \((`repeat` == nil) ? "nil" : (`repeat`! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))shuffle: \((shuffle == nil) ? "nil" : (shuffle! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))id: \(id ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))tracksMax: \(tracksMax ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))protocolInfo: '\(protocolInfo ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

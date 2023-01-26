@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class ConnectionManager1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -42,6 +43,18 @@ public class ConnectionManager1Service: UPnPService {
 		public var peerConnectionID: Int32
 		public var direction: A_ARG_TYPE_DirectionEnum
 		public var status: A_ARG_TYPE_ConnectionStatusEnum
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetCurrentConnectionInfoResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))rcsID: \(rcsID)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))aVTransportID: \(aVTransportID)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))protocolInfo: '\(protocolInfo)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))peerConnectionManager: '\(peerConnectionManager)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))peerConnectionID: \(peerConnectionID)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))direction: \(direction.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))status: \(status.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getCurrentConnectionInfo(connectionID: Int32) async throws -> GetCurrentConnectionInfoResponse {
 		struct SoapAction: Codable {
@@ -76,6 +89,13 @@ public class ConnectionManager1Service: UPnPService {
 
 		public var source: String
 		public var sink: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetProtocolInfoResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))source: '\(source)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sink: '\(sink)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getProtocolInfo() async throws -> GetProtocolInfoResponse {
 		struct SoapAction: Codable {
@@ -106,6 +126,12 @@ public class ConnectionManager1Service: UPnPService {
 		}
 
 		public var connectionIDs: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetCurrentConnectionIDsResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))connectionIDs: '\(connectionIDs)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getCurrentConnectionIDs() async throws -> GetCurrentConnectionIDsResponse {
 		struct SoapAction: Codable {
@@ -144,6 +170,14 @@ extension ConnectionManager1Service {
 		public var sourceProtocolInfo: String?
 		public var sinkProtocolInfo: String?
 		public var currentConnectionIDs: String?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ConnectionManager1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sourceProtocolInfo: '\(sourceProtocolInfo ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sinkProtocolInfo: '\(sinkProtocolInfo ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentConnectionIDs: '\(currentConnectionIDs ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

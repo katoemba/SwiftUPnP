@@ -18,10 +18,12 @@ public class UPnPRegistry {
     @MainActor
     public var devices = [UPnPDevice]()
     private var deviceAddedSubject = PassthroughSubject<UPnPDevice, Never>()
+    // devices are always delivered on the main thread.
     public var deviceAdded: AnyPublisher<UPnPDevice, Never> {
         deviceAddedSubject.receive(on: RunLoop.main).eraseToAnyPublisher()
     }
     private var deviceRemovedSubject = PassthroughSubject<UPnPDevice, Never>()
+    // devices are always delivered on the main thread.
     public var deviceRemoved: AnyPublisher<UPnPDevice, Never> {
         deviceRemovedSubject.receive(on: RunLoop.main).eraseToAnyPublisher()
     }
@@ -108,6 +110,7 @@ public class UPnPRegistry {
         guard devices.contains(where: { $0.id == device.id }) == false else { return }
         devices.append(device)
         
+        Logger.swiftUPnP.debug("device \(device.id)")
         Task {
             await device.loadRoot()
             if let deviceServices = device.deviceDefinition?.device.serviceList?.service {

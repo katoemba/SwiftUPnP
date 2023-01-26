@@ -116,4 +116,13 @@ extension Logger {
 
     /// Logs the view cycles like viewDidLoad.
     static let swiftUPnP = Logger(subsystem: subsystem, category: "SwiftUPnP")
+    
+    static func indent(_ indent: Int) -> String {
+        var indentLine = ""
+        for _ in 0..<indent {
+            indentLine += "  "
+        }
+        
+        return indentLine
+    }
 }

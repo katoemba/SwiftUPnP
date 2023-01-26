@@ -28,6 +28,7 @@ extension scdp {
         code += "import Foundation\n"
         code += "import Combine\n"
         code += "import XMLCoder\n"
+        code += "import os.log\n"
         code += "\n"
         code += "public class \(serviceName): UPnPService {\n"
         code += "\tstruct Envelope<T: Codable>: Codable {\n"
@@ -98,6 +99,17 @@ extension scdp {
                 code += "\t\tpublic var \(argument.name.uncapitalizeFirstLetter()): \(swiftTypeFor(argument))\n"
             }
         }
+        
+        code += "\n"
+        code += "\t\tpublic func log(deep: Bool = false, indent: Int = 0) {\n"
+        code += "\t\t\tLogger.swiftUPnP.debug(\"\\(Logger.indent(indent))\(action.name)Response {\")\n"
+        for argument in action.outArguments {
+            if typeFor(argument) != .bin_base64 {
+                code += "\t\t\tLogger.swiftUPnP.debug(\"\\(Logger.indent(indent+1))\(logVar(argument))\")\n"
+            }
+        }
+        code += "\t\t\tLogger.swiftUPnP.debug(\"\\(Logger.indent(indent))}\")\n"
+        code += "\t\t}\n"
         code += "\t}\n"
 
         return code
@@ -227,8 +239,19 @@ extension scdp {
                 code += "\t\tpublic var \(stateVariable.name.uncapitalizeFirstLetter()): \(stateVariable.swiftType)?\n"
             }
         }
-        code += "\t}\n"
         
+        code += "\n"
+        code += "\t\tpublic func log(deep: Bool = false, indent: Int = 0) {\n"
+        code += "\t\t\tLogger.swiftUPnP.debug(\"\\(Logger.indent(indent))\(serviceName)State {\")\n"
+        for stateVariable in serviceStateTable.stateVariable.filter({ $0.sendEvents.lowercased() == "yes" }) {
+            if stateVariable.dataType != .bin_base64 {
+                code += "\t\t\tLogger.swiftUPnP.debug(\"\\(Logger.indent(indent+1))\(logVar(stateVariable))\")\n"
+            }
+        }
+        code += "\t\t\tLogger.swiftUPnP.debug(\"\\(Logger.indent(indent))}\")\n"
+        code += "\t\t}\n"
+        code += "\t}\n"
+
         return code
     }
     
@@ -282,6 +305,48 @@ extension scdp {
     func swiftTypeFor(_ argument: Argument) -> String {
         serviceStateTable.stateVariable.first(where: { $0.name == argument.relatedStateVariable })!.swiftType
     }
+    
+    func logVar(_ argument: Argument) -> String {
+        let name = argument.name.uncapitalizeFirstLetter()
+        let stateVariable = serviceStateTable.stateVariable.first(where: { $0.name == argument.relatedStateVariable })!
+
+        switch typeFor(argument) {
+        case .boolean:
+            return "\(name): \\(\(name) == true ? \"true\" : \"false\")"
+        case .string:
+            if stateVariable.useEnum {
+                return "\(name): \\(\(name).rawValue)"
+            }
+            else {
+                return "\(name): '\\(\(name))'"
+            }
+        case .bin_base64:
+            return ""
+        default:
+            return "\(name): \\(\(name))"
+        }
+    }
+
+    func logVar(_ stateVariable: StateVariable) -> String {
+        let name = stateVariable.name.uncapitalizeFirstLetter()
+
+        switch stateVariable.dataType {
+        case .boolean:
+            return "\(name): \\((\(name) == nil) ? \"nil\" : (\(name)! == true ? \"true\" : \"false\"))"
+        case .string:
+            if stateVariable.useEnum {
+                return "\(name): \\(\(name)?.rawValue ?? \"nil\")"
+            }
+            else {
+                return "\(name): '\\(\(name) ?? \"nil\")'"
+            }
+        case .bin_base64:
+            return ""
+        default:
+            return "\(name): \\(\(name) ?? 0)'"
+        }
+    }
+
 }
 
 extension String {

@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class RenderingControl1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -41,6 +42,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentPresetNameList: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ListPresetsResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentPresetNameList: '\(currentPresetNameList)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func listPresets(instanceID: UInt32) async throws -> ListPresetsResponse {
 		struct SoapAction: Codable {
@@ -95,6 +102,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentBrightness: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetBrightnessResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentBrightness: \(currentBrightness)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getBrightness(instanceID: UInt32) async throws -> GetBrightnessResponse {
 		struct SoapAction: Codable {
@@ -149,6 +162,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentContrast: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetContrastResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentContrast: \(currentContrast)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getContrast(instanceID: UInt32) async throws -> GetContrastResponse {
 		struct SoapAction: Codable {
@@ -203,6 +222,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentSharpness: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetSharpnessResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentSharpness: \(currentSharpness)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getSharpness(instanceID: UInt32) async throws -> GetSharpnessResponse {
 		struct SoapAction: Codable {
@@ -257,6 +282,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentRedVideoGain: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetRedVideoGainResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentRedVideoGain: \(currentRedVideoGain)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getRedVideoGain(instanceID: UInt32) async throws -> GetRedVideoGainResponse {
 		struct SoapAction: Codable {
@@ -311,6 +342,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentGreenVideoGain: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetGreenVideoGainResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentGreenVideoGain: \(currentGreenVideoGain)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getGreenVideoGain(instanceID: UInt32) async throws -> GetGreenVideoGainResponse {
 		struct SoapAction: Codable {
@@ -365,6 +402,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentBlueVideoGain: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetBlueVideoGainResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentBlueVideoGain: \(currentBlueVideoGain)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getBlueVideoGain(instanceID: UInt32) async throws -> GetBlueVideoGainResponse {
 		struct SoapAction: Codable {
@@ -419,6 +462,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentRedVideoBlackLevel: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetRedVideoBlackLevelResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentRedVideoBlackLevel: \(currentRedVideoBlackLevel)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getRedVideoBlackLevel(instanceID: UInt32) async throws -> GetRedVideoBlackLevelResponse {
 		struct SoapAction: Codable {
@@ -473,6 +522,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentGreenVideoBlackLevel: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetGreenVideoBlackLevelResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentGreenVideoBlackLevel: \(currentGreenVideoBlackLevel)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getGreenVideoBlackLevel(instanceID: UInt32) async throws -> GetGreenVideoBlackLevelResponse {
 		struct SoapAction: Codable {
@@ -527,6 +582,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentBlueVideoBlackLevel: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetBlueVideoBlackLevelResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentBlueVideoBlackLevel: \(currentBlueVideoBlackLevel)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getBlueVideoBlackLevel(instanceID: UInt32) async throws -> GetBlueVideoBlackLevelResponse {
 		struct SoapAction: Codable {
@@ -581,6 +642,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentColorTemperature: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetColorTemperatureResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentColorTemperature: \(currentColorTemperature)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getColorTemperature(instanceID: UInt32) async throws -> GetColorTemperatureResponse {
 		struct SoapAction: Codable {
@@ -635,6 +702,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentHorizontalKeystone: Int16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetHorizontalKeystoneResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentHorizontalKeystone: \(currentHorizontalKeystone)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getHorizontalKeystone(instanceID: UInt32) async throws -> GetHorizontalKeystoneResponse {
 		struct SoapAction: Codable {
@@ -689,6 +762,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentVerticalKeystone: Int16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetVerticalKeystoneResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentVerticalKeystone: \(currentVerticalKeystone)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getVerticalKeystone(instanceID: UInt32) async throws -> GetVerticalKeystoneResponse {
 		struct SoapAction: Codable {
@@ -743,6 +822,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentMute: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetMuteResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentMute: \(currentMute == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getMute(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetMuteResponse {
 		struct SoapAction: Codable {
@@ -801,6 +886,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentVolume: UInt16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetVolumeResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentVolume: \(currentVolume)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getVolume(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetVolumeResponse {
 		struct SoapAction: Codable {
@@ -859,6 +950,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentVolume: Int16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetVolumeDBResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentVolume: \(currentVolume)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getVolumeDB(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetVolumeDBResponse {
 		struct SoapAction: Codable {
@@ -919,6 +1016,13 @@ public class RenderingControl1Service: UPnPService {
 
 		public var minValue: Int16
 		public var maxValue: Int16
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetVolumeDBRangeResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))minValue: \(minValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))maxValue: \(maxValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getVolumeDBRange(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetVolumeDBRangeResponse {
 		struct SoapAction: Codable {
@@ -953,6 +1057,12 @@ public class RenderingControl1Service: UPnPService {
 		}
 
 		public var currentLoudness: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetLoudnessResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentLoudness: \(currentLoudness == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getLoudness(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetLoudnessResponse {
 		struct SoapAction: Codable {
@@ -1015,6 +1125,12 @@ extension RenderingControl1Service {
 		}
 
 		public var lastChange: String?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))RenderingControl1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))lastChange: '\(lastChange ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

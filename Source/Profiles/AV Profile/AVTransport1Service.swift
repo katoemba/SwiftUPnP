@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class AVTransport1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -214,6 +215,20 @@ public class AVTransport1Service: UPnPService {
 		public var playMedium: PlaybackStorageMediumEnum
 		public var recordMedium: RecordStorageMediumEnum
 		public var writeStatus: RecordMediumWriteStatusEnum
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetMediaInfoResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))nrTracks: \(nrTracks)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))mediaDuration: '\(mediaDuration)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentURI: '\(currentURI)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentURIMetaData: '\(currentURIMetaData)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))nextURI: '\(nextURI)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))nextURIMetaData: '\(nextURIMetaData)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))playMedium: \(playMedium.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))recordMedium: \(recordMedium.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))writeStatus: \(writeStatus.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getMediaInfo(instanceID: UInt32) async throws -> GetMediaInfoResponse {
 		struct SoapAction: Codable {
@@ -250,6 +265,14 @@ public class AVTransport1Service: UPnPService {
 		public var currentTransportState: TransportStateEnum
 		public var currentTransportStatus: TransportStatusEnum
 		public var currentSpeed: TransportPlaySpeedEnum
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetTransportInfoResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentTransportState: \(currentTransportState.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentTransportStatus: \(currentTransportStatus.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))currentSpeed: \(currentSpeed.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getTransportInfo(instanceID: UInt32) async throws -> GetTransportInfoResponse {
 		struct SoapAction: Codable {
@@ -296,6 +319,19 @@ public class AVTransport1Service: UPnPService {
 		public var absTime: String
 		public var relCount: Int32
 		public var absCount: Int32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetPositionInfoResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))track: \(track)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))trackDuration: '\(trackDuration)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))trackMetaData: '\(trackMetaData)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))trackURI: '\(trackURI)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))relTime: '\(relTime)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))absTime: '\(absTime)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))relCount: \(relCount)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))absCount: \(absCount)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getPositionInfo(instanceID: UInt32) async throws -> GetPositionInfoResponse {
 		struct SoapAction: Codable {
@@ -332,6 +368,14 @@ public class AVTransport1Service: UPnPService {
 		public var playMedia: String
 		public var recMedia: String
 		public var recQualityModes: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetDeviceCapabilitiesResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))playMedia: '\(playMedia)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))recMedia: '\(recMedia)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))recQualityModes: '\(recQualityModes)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getDeviceCapabilities(instanceID: UInt32) async throws -> GetDeviceCapabilitiesResponse {
 		struct SoapAction: Codable {
@@ -366,6 +410,13 @@ public class AVTransport1Service: UPnPService {
 
 		public var playMode: CurrentPlayModeEnum
 		public var recQualityMode: CurrentRecordQualityModeEnum
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetTransportSettingsResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))playMode: \(playMode.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))recQualityMode: \(recQualityMode.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getTransportSettings(instanceID: UInt32) async throws -> GetTransportSettingsResponse {
 		struct SoapAction: Codable {
@@ -588,6 +639,12 @@ public class AVTransport1Service: UPnPService {
 		}
 
 		public var actions: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetCurrentTransportActionsResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))actions: '\(actions)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getCurrentTransportActions(instanceID: UInt32) async throws -> GetCurrentTransportActionsResponse {
 		struct SoapAction: Codable {
@@ -624,6 +681,12 @@ extension AVTransport1Service {
 		}
 
 		public var lastChange: String?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))AVTransport1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))lastChange: '\(lastChange ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class OpenHomeProduct1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -23,6 +24,15 @@ public class OpenHomeProduct1Service: UPnPService {
 		public var info: String
 		public var url: String
 		public var imageUri: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ManufacturerResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))name: '\(name)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))info: '\(info)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))url: '\(url)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))imageUri: '\(imageUri)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func manufacturer() async throws -> ManufacturerResponse {
 		struct SoapAction: Codable {
@@ -59,6 +69,15 @@ public class OpenHomeProduct1Service: UPnPService {
 		public var info: String
 		public var url: String
 		public var imageUri: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ModelResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))name: '\(name)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))info: '\(info)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))url: '\(url)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))imageUri: '\(imageUri)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func model() async throws -> ModelResponse {
 		struct SoapAction: Codable {
@@ -97,6 +116,16 @@ public class OpenHomeProduct1Service: UPnPService {
 		public var info: String
 		public var url: String
 		public var imageUri: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ProductResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))room: '\(room)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))name: '\(name)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))info: '\(info)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))url: '\(url)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))imageUri: '\(imageUri)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func product() async throws -> ProductResponse {
 		struct SoapAction: Codable {
@@ -127,6 +156,12 @@ public class OpenHomeProduct1Service: UPnPService {
 		}
 
 		public var value: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))StandbyResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func standby() async throws -> StandbyResponse {
 		struct SoapAction: Codable {
@@ -177,6 +212,12 @@ public class OpenHomeProduct1Service: UPnPService {
 		}
 
 		public var value: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))SourceCountResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func sourceCount() async throws -> SourceCountResponse {
 		struct SoapAction: Codable {
@@ -207,6 +248,12 @@ public class OpenHomeProduct1Service: UPnPService {
 		}
 
 		public var value: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))SourceXmlResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: '\(value)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func sourceXml() async throws -> SourceXmlResponse {
 		struct SoapAction: Codable {
@@ -237,6 +284,12 @@ public class OpenHomeProduct1Service: UPnPService {
 		}
 
 		public var value: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))SourceIndexResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func sourceIndex() async throws -> SourceIndexResponse {
 		struct SoapAction: Codable {
@@ -313,6 +366,15 @@ public class OpenHomeProduct1Service: UPnPService {
 		public var type: String
 		public var name: String
 		public var visible: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))SourceResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))systemName: '\(systemName)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))type: '\(type)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))name: '\(name)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))visible: \(visible == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func source(index: UInt32) async throws -> SourceResponse {
 		struct SoapAction: Codable {
@@ -345,6 +407,12 @@ public class OpenHomeProduct1Service: UPnPService {
 		}
 
 		public var value: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))AttributesResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: '\(value)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func attributes() async throws -> AttributesResponse {
 		struct SoapAction: Codable {
@@ -375,6 +443,12 @@ public class OpenHomeProduct1Service: UPnPService {
 		}
 
 		public var value: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))SourceXmlChangeCountResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func sourceXmlChangeCount() async throws -> SourceXmlChangeCountResponse {
 		struct SoapAction: Codable {
@@ -443,6 +517,29 @@ extension OpenHomeProduct1Service {
 		public var sourceCount: UInt32?
 		public var sourceXml: String?
 		public var attributes: String?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))OpenHomeProduct1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))manufacturerName: '\(manufacturerName ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))manufacturerInfo: '\(manufacturerInfo ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))manufacturerUrl: '\(manufacturerUrl ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))manufacturerImageUri: '\(manufacturerImageUri ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))modelName: '\(modelName ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))modelInfo: '\(modelInfo ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))modelUrl: '\(modelUrl ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))modelImageUri: '\(modelImageUri ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))productRoom: '\(productRoom ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))productName: '\(productName ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))productInfo: '\(productInfo ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))productUrl: '\(productUrl ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))productImageUri: '\(productImageUri ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))standby: \((standby == nil) ? "nil" : (standby! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sourceIndex: \(sourceIndex ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sourceCount: \(sourceCount ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sourceXml: '\(sourceXml ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))attributes: '\(attributes ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

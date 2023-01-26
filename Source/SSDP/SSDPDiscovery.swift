@@ -103,6 +103,7 @@ public class SSDPDiscovery {
                 let uuid = usnComponents[0]
                 let deviceId = usnComponents[1]
 
+                Logger.swiftUPnP.debug("SSDP \(ssdpType) \(uuid)")
                 if types.contains(ssdpType) {
                     if messageType == .unavailableNotification {
                         Task {

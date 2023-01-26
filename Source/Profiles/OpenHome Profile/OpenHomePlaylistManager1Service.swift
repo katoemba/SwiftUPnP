@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class OpenHomePlaylistManager1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -17,6 +18,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var metadata: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))MetadataResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))metadata: '\(metadata)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func metadata() async throws -> MetadataResponse {
 		struct SoapAction: Codable {
@@ -47,6 +54,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var imagesXml: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ImagesXmlResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))imagesXml: '\(imagesXml)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func imagesXml() async throws -> ImagesXmlResponse {
 		struct SoapAction: Codable {
@@ -80,6 +93,11 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		public var array: [UInt32]? {
 			arrayData?.toArray(type: UInt32.self).map { $0.bigEndian }
 		}
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))PlaylistReadArrayResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func playlistReadArray(id: UInt32) async throws -> PlaylistReadArrayResponse {
 		struct SoapAction: Codable {
@@ -112,6 +130,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var playlistList: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))PlaylistReadListResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))playlistList: '\(playlistList)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func playlistReadList(idList: String) async throws -> PlaylistReadListResponse {
 		struct SoapAction: Codable {
@@ -148,6 +172,14 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		public var name: String
 		public var description: String
 		public var imageId: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))PlaylistReadResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))name: '\(name)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))description: '\(description)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))imageId: \(imageId)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func playlistRead(id: UInt32) async throws -> PlaylistReadResponse {
 		struct SoapAction: Codable {
@@ -246,6 +278,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var newId: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))PlaylistInsertResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))newId: \(newId)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func playlistInsert(afterId: UInt32, name: String, description: String, imageId: UInt32) async throws -> PlaylistInsertResponse {
 		struct SoapAction: Codable {
@@ -326,6 +364,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var value: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))PlaylistsMaxResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func playlistsMax() async throws -> PlaylistsMaxResponse {
 		struct SoapAction: Codable {
@@ -356,6 +400,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var value: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))TracksMaxResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func tracksMax() async throws -> TracksMaxResponse {
 		struct SoapAction: Codable {
@@ -396,6 +446,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		public var tokenArray: [UInt32]? {
 			tokenArrayData?.toArray(type: UInt32.self).map { $0.bigEndian }
 		}
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))PlaylistArraysResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))token: \(token)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func playlistArrays() async throws -> PlaylistArraysResponse {
 		struct SoapAction: Codable {
@@ -426,6 +482,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var value: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))PlaylistArraysChangedResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func playlistArraysChanged(token: UInt32) async throws -> PlaylistArraysChangedResponse {
 		struct SoapAction: Codable {
@@ -458,6 +520,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var metadata: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ReadResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))metadata: '\(metadata)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func read(id: UInt32, trackId: UInt32) async throws -> ReadResponse {
 		struct SoapAction: Codable {
@@ -492,6 +560,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var trackList: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ReadListResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))trackList: '\(trackList)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func readList(id: UInt32, trackIdList: String) async throws -> ReadListResponse {
 		struct SoapAction: Codable {
@@ -526,6 +600,12 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 		}
 
 		public var newTrackId: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))InsertResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))newTrackId: \(newTrackId)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func insert(id: UInt32, afterTrackId: UInt32, udn: String, metadataId: String) async throws -> InsertResponse {
 		struct SoapAction: Codable {
@@ -626,6 +706,15 @@ extension OpenHomePlaylistManager1Service {
 		}
 		public var playlistsMax: UInt32?
 		public var tracksMax: UInt32?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))OpenHomePlaylistManager1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))metadata: '\(metadata ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))imagesXml: '\(imagesXml ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))playlistsMax: \(playlistsMax ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))tracksMax: \(tracksMax ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

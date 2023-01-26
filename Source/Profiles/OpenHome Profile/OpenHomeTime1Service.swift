@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class OpenHomeTime1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -21,6 +22,14 @@ public class OpenHomeTime1Service: UPnPService {
 		public var trackCount: UInt32
 		public var duration: UInt32
 		public var seconds: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))TimeResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))trackCount: \(trackCount)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))duration: \(duration)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))seconds: \(seconds)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func time() async throws -> TimeResponse {
 		struct SoapAction: Codable {
@@ -59,6 +68,14 @@ extension OpenHomeTime1Service {
 		public var trackCount: UInt32?
 		public var duration: UInt32?
 		public var seconds: UInt32?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))OpenHomeTime1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))trackCount: \(trackCount ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))duration: \(duration ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))seconds: \(seconds ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

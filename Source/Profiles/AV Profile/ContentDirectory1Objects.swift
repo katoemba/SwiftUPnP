@@ -10,6 +10,12 @@ import XMLCoder
 import os.log
 
 public struct DIDLLite: Codable {
+    public init(container: [DIDLContainer], item: [DIDLItem], desc: [DIDLDescription]) {
+        self.container = container
+        self.item = item
+        self.desc = desc
+    }
+    
     public let container: [DIDLContainer]
     public let item: [DIDLItem]
     public let desc: [DIDLDescription]
@@ -52,6 +58,29 @@ public struct DIDLLite: Codable {
 }
 
 public struct DIDLContainer: Codable {
+    enum CodingKeys: String, CodingKey {
+        case id
+        case parentID
+        case childCount
+        case restricted
+        case searchable
+
+        case container
+        case item
+        case desc
+        case res
+
+        case `class` = "upnp:class"
+        case title = "dc:title"
+        case creator = "dc:creator"
+        case date = "dc:date"
+        case artist = "upnp:artist"
+        case genre = "upnp:genre"
+        case albumArtURI = "upnp:albumArtURI"
+        case artistDiscographyURI = "upnp:artistDiscographyURI"
+        case lyricsURI = "upnp:URI"
+    }
+
     @Attribute public var id: String
     @Attribute public var parentID: String
     @Attribute public var childCount: Int?
@@ -61,6 +90,7 @@ public struct DIDLContainer: Codable {
     public let container: [DIDLContainer]
     public let item: [DIDLItem]
     public let desc: [DIDLDescription]
+    public let res: [DIDLRes]
 
     public let `class`: String
     public let title: String
@@ -71,15 +101,84 @@ public struct DIDLContainer: Codable {
     public let albumArtURI: [URL]
     public let artistDiscographyURI: URL?
     public let lyricsURI: URL?
-    public let res: [DIDLRes]
 }
 
-public struct DIDLItem: Codable {
-    @Attribute public var id: String?
-    @Attribute public var refID: String?
-    @Attribute public var parentID: String?
-    @Attribute public var restricted: Bool?
-    @Attribute public var searchable: Bool?
+public struct DIDLItem: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
+    public init(id: String? = nil,
+                refID: String? = nil,
+                parentID: String? = nil,
+                restricted: Bool? = nil,
+                searchable: Bool? = nil,
+                res: [DIDLRes],
+                desc: [DIDLDescription],
+                `class`: String,
+                title: String,
+                orig: String? = nil,
+                date: String? = nil,
+                album: String? = nil,
+                artist: [DIDLArtist],
+                genre: String? = nil,
+                playlist: String? = nil,
+                albumArtURI: [URL],
+                artistDiscographyURI: URL? = nil,
+                lyricsURI: URL? = nil,
+                originalTrackNumber: UInt32? = nil,
+                originalDiscNumber: UInt32? = nil) {
+        self.res = res
+        self.desc = desc
+        self.`class` = `class`
+        self.title = title
+        self.orig = orig
+        self.date = date
+        self.album = album
+        self.artist = artist
+        self.genre = genre
+        self.playlist = playlist
+        self.albumArtURI = albumArtURI
+        self.artistDiscographyURI = artistDiscographyURI
+        self.lyricsURI = lyricsURI
+        self.originalTrackNumber = originalTrackNumber
+        self.originalDiscNumber = originalDiscNumber
+        self.id = id
+        self.refID = refID
+        self.parentID = parentID
+        self.restricted = restricted
+        self.searchable = searchable
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case refID
+        case parentID
+        case restricted
+        case searchable
+        
+        case res
+        case desc
+
+        case `class` = "upnp:class"
+        case title = "dc:title"
+        case orig = "upnp:orig"
+        case date = "dc:date"
+        case album = "upnp:album"
+        case artist = "upnp:artist"
+        case genre = "upnp:genre"
+        case playlist = "upnp:playlist"
+        case albumArtURI = "upnp:albumArtURI"
+        case artistDiscographyURI = "upnp:artistDiscographyURI"
+        case lyricsURI = "upnp:URI"
+        case originalTrackNumber = "upnp:originalTrackNumber"
+        case originalDiscNumber = "upnp:originalDiscNumber"
+    }
+
+    public let id: String?
+    public let refID: String?
+    public let parentID: String?
+    public let restricted: Bool?
+    public let searchable: Bool?
+
+    public let res: [DIDLRes]
+    public let desc: [DIDLDescription]
 
     public let `class`: String
     public let title: String
@@ -94,8 +193,25 @@ public struct DIDLItem: Codable {
     public let lyricsURI: URL?
     public let originalTrackNumber: UInt32?
     public let originalDiscNumber: UInt32?
-    public let res: [DIDLRes]
-    public let desc: [DIDLDescription]
+    
+    static public func nodeDecoding(for key: CodingKey) -> XMLDecoder.NodeDecoding {
+        switch key {
+        case CodingKeys.id, CodingKeys.refID, CodingKeys.parentID, CodingKeys.restricted, CodingKeys.searchable:
+            return .attribute
+        default:
+            return .element
+        }
+    }
+
+    static public func nodeEncoding(for key: CodingKey) -> XMLEncoder.NodeEncoding {
+        switch key {
+        case CodingKeys.id, CodingKeys.refID, CodingKeys.parentID, CodingKeys.restricted, CodingKeys.searchable:
+            return .attribute
+        default:
+            return .element
+        }
+    }
+
 }
 
 public struct DIDLDescription: Codable, DynamicNodeDecoding {
@@ -122,7 +238,33 @@ public struct DIDLDescription: Codable, DynamicNodeDecoding {
 }
 
 // Combination of value with attributes doesn't work (yet) with XMLCoder, revert to DynamicNodeDecoding
-public struct DIDLRes: Codable, DynamicNodeDecoding {
+public struct DIDLRes: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
+    public init(importUri: URL? = nil,
+                protocolInfo: String? = nil,
+                size: UInt32? = nil, duration:
+                String? = nil,
+                bitrate: UInt? = nil,
+                sampleFrequency: UInt? = nil,
+                bitsPerSample: UInt? = nil,
+                nrAudioChannels: UInt? = nil,
+                colorDepth: UInt? = nil,
+                protection: String? = nil,
+                resolution: String? = nil,
+                value: URL) {
+        self.importUri = importUri
+        self.protocolInfo = protocolInfo
+        self.size = size
+        self.duration = duration
+        self.bitrate = bitrate
+        self.sampleFrequency = sampleFrequency
+        self.bitsPerSample = bitsPerSample
+        self.nrAudioChannels = nrAudioChannels
+        self.colorDepth = colorDepth
+        self.protection = protection
+        self.resolution = resolution
+        self.value = value
+    }
+    
     enum CodingKeys: String, CodingKey {
         case importUri
         case protocolInfo
@@ -137,7 +279,7 @@ public struct DIDLRes: Codable, DynamicNodeDecoding {
         case resolution
         case value = ""
     }
-
+    
     public let importUri: URL?
     public let protocolInfo: String?
     public let size: UInt32?
@@ -160,20 +302,42 @@ public struct DIDLRes: Codable, DynamicNodeDecoding {
             return .attribute
         }
     }
-
+    
+    static public func nodeEncoding(for key: CodingKey) -> XMLEncoder.NodeEncoding {
+        switch key {
+        case CodingKeys.value:
+            return .element
+        default:
+            return .attribute
+        }
+    }
 }
 
 // Combination of value with attributes doesn't work (yet) with XMLCoder, revert to DynamicNodeDecoding
-public struct DIDLArtist: Codable, DynamicNodeDecoding {
+public struct DIDLArtist: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
+    public init(role: String? = nil, value: String) {
+        self.role = role
+        self.value = value
+    }
+    
     enum CodingKeys: String, CodingKey {
         case role
         case value = ""
     }
-
+    
     public let role: String?
     public let value: String
     
     static public func nodeDecoding(for key: CodingKey) -> XMLDecoder.NodeDecoding {
+        switch key {
+        case CodingKeys.value:
+            return .element
+        default:
+            return .attribute
+        }
+    }
+    
+    static public func nodeEncoding(for key: CodingKey) -> XMLEncoder.NodeEncoding {
         switch key {
         case CodingKeys.value:
             return .element
@@ -210,7 +374,7 @@ public extension ContentDirectory1Service {
                                         sortCriteria: sortCriteria)
         
         let decoder = XMLDecoder()
-        decoder.shouldProcessNamespaces = true
+        decoder.shouldProcessNamespaces = false
         
         guard let data = response.result.data(using: .utf8) else {
             throw ServiceParseError.noValidResponse

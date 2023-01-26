@@ -163,7 +163,8 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         request.setValue("\(String(decoding: httpBody, as: UTF8.self).count)", forHTTPHeaderField: "Content-Length")
 
         let (data, _) = try await URLSession.shared.data(for: request)
-                
+        Logger.swiftUPnP.debug("\(String(data: data, encoding: .utf8) ?? "No data")")
+        
         let decoder = XMLDecoder()
         decoder.shouldProcessNamespaces = false
         

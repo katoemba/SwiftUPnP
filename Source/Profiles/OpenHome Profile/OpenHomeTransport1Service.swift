@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class OpenHomeTransport1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -221,6 +222,12 @@ public class OpenHomeTransport1Service: UPnPService {
 		}
 
 		public var state: TransportStateEnum
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))TransportStateResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))state: \(state.rawValue)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func transportState() async throws -> TransportStateResponse {
 		struct SoapAction: Codable {
@@ -251,6 +258,12 @@ public class OpenHomeTransport1Service: UPnPService {
 		}
 
 		public var modes: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ModesResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))modes: '\(modes)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func modes() async throws -> ModesResponse {
 		struct SoapAction: Codable {
@@ -287,6 +300,15 @@ public class OpenHomeTransport1Service: UPnPService {
 		public var canSkipPrevious: Bool
 		public var canRepeat: Bool
 		public var canShuffle: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ModeInfoResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canSkipNext: \(canSkipNext == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canSkipPrevious: \(canSkipPrevious == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canRepeat: \(canRepeat == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canShuffle: \(canShuffle == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func modeInfo() async throws -> ModeInfoResponse {
 		struct SoapAction: Codable {
@@ -321,6 +343,14 @@ public class OpenHomeTransport1Service: UPnPService {
 		public var streamId: UInt32
 		public var canSeek: Bool
 		public var canPause: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))StreamInfoResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))streamId: \(streamId)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canSeek: \(canSeek == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canPause: \(canPause == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func streamInfo() async throws -> StreamInfoResponse {
 		struct SoapAction: Codable {
@@ -351,6 +381,12 @@ public class OpenHomeTransport1Service: UPnPService {
 		}
 
 		public var streamId: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))StreamIdResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))streamId: \(streamId)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func streamId() async throws -> StreamIdResponse {
 		struct SoapAction: Codable {
@@ -381,6 +417,12 @@ public class OpenHomeTransport1Service: UPnPService {
 		}
 
 		public var `repeat`: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))RepeatResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))`repeat`: \(`repeat` == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func `repeat`() async throws -> RepeatResponse {
 		struct SoapAction: Codable {
@@ -411,6 +453,12 @@ public class OpenHomeTransport1Service: UPnPService {
 		}
 
 		public var shuffle: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ShuffleResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))shuffle: \(shuffle == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func shuffle() async throws -> ShuffleResponse {
 		struct SoapAction: Codable {
@@ -465,6 +513,22 @@ extension OpenHomeTransport1Service {
 		public var transportState: TransportStateEnum?
 		public var `repeat`: Bool?
 		public var shuffle: Bool?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))OpenHomeTransport1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))modes: '\(modes ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canSkipNext: \((canSkipNext == nil) ? "nil" : (canSkipNext! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canSkipPrevious: \((canSkipPrevious == nil) ? "nil" : (canSkipPrevious! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canRepeat: \((canRepeat == nil) ? "nil" : (canRepeat! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canShuffle: \((canShuffle == nil) ? "nil" : (canShuffle! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))streamId: \(streamId ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canSeek: \((canSeek == nil) ? "nil" : (canSeek! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))canPause: \((canPause == nil) ? "nil" : (canPause! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))transportState: \(transportState?.rawValue ?? "nil")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))`repeat`: \((`repeat` == nil) ? "nil" : (`repeat`! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))shuffle: \((shuffle == nil) ? "nil" : (shuffle! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

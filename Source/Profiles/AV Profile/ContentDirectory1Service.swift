@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class ContentDirectory1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -28,6 +29,15 @@ public class ContentDirectory1Service: UPnPService {
 		public var numberReturned: UInt32
 		public var totalMatches: UInt32
 		public var updateID: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))BrowseResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))result: '\(result)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))numberReturned: \(numberReturned)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))totalMatches: \(totalMatches)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))updateID: \(updateID)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func browse(objectID: String, browseFlag: A_ARG_TYPE_BrowseFlagEnum, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String) async throws -> BrowseResponse {
 		struct SoapAction: Codable {
@@ -70,6 +80,12 @@ public class ContentDirectory1Service: UPnPService {
 		}
 
 		public var sortCaps: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetSortCapabilitiesResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sortCaps: '\(sortCaps)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getSortCapabilities() async throws -> GetSortCapabilitiesResponse {
 		struct SoapAction: Codable {
@@ -100,6 +116,12 @@ public class ContentDirectory1Service: UPnPService {
 		}
 
 		public var id: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetSystemUpdateIDResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))id: \(id)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getSystemUpdateID() async throws -> GetSystemUpdateIDResponse {
 		struct SoapAction: Codable {
@@ -130,6 +152,12 @@ public class ContentDirectory1Service: UPnPService {
 		}
 
 		public var searchCaps: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetSearchCapabilitiesResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))searchCaps: '\(searchCaps)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getSearchCapabilities() async throws -> GetSearchCapabilitiesResponse {
 		struct SoapAction: Codable {
@@ -166,6 +194,15 @@ public class ContentDirectory1Service: UPnPService {
 		public var numberReturned: UInt32
 		public var totalMatches: UInt32
 		public var updateID: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))SearchResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))result: '\(result)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))numberReturned: \(numberReturned)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))totalMatches: \(totalMatches)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))updateID: \(updateID)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func search(containerID: String, searchCriteria: String, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String) async throws -> SearchResponse {
 		struct SoapAction: Codable {
@@ -214,6 +251,13 @@ extension ContentDirectory1Service {
 
 		public var containerUpdateIDs: String?
 		public var systemUpdateID: UInt32?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ContentDirectory1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))containerUpdateIDs: '\(containerUpdateIDs ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))systemUpdateID: \(systemUpdateID ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

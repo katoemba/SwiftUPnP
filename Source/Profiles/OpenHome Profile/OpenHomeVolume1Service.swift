@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class OpenHomeVolume1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -27,6 +28,17 @@ public class OpenHomeVolume1Service: UPnPService {
 		public var volumeMilliDbPerStep: UInt32
 		public var balanceMax: UInt32
 		public var fadeMax: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))CharacteristicsResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volumeMax: \(volumeMax)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volumeUnity: \(volumeUnity)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volumeSteps: \(volumeSteps)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volumeMilliDbPerStep: \(volumeMilliDbPerStep)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))balanceMax: \(balanceMax)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))fadeMax: \(fadeMax)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func characteristics() async throws -> CharacteristicsResponse {
 		struct SoapAction: Codable {
@@ -113,6 +125,12 @@ public class OpenHomeVolume1Service: UPnPService {
 		}
 
 		public var value: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))VolumeResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func volume() async throws -> VolumeResponse {
 		struct SoapAction: Codable {
@@ -199,6 +217,12 @@ public class OpenHomeVolume1Service: UPnPService {
 		}
 
 		public var value: Int32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))BalanceResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func balance() async throws -> BalanceResponse {
 		struct SoapAction: Codable {
@@ -285,6 +309,12 @@ public class OpenHomeVolume1Service: UPnPService {
 		}
 
 		public var value: Int32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))FadeResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func fade() async throws -> FadeResponse {
 		struct SoapAction: Codable {
@@ -335,6 +365,12 @@ public class OpenHomeVolume1Service: UPnPService {
 		}
 
 		public var value: Bool
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))MuteResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func mute() async throws -> MuteResponse {
 		struct SoapAction: Codable {
@@ -365,6 +401,12 @@ public class OpenHomeVolume1Service: UPnPService {
 		}
 
 		public var value: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))VolumeLimitResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: \(value)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func volumeLimit() async throws -> VolumeLimitResponse {
 		struct SoapAction: Codable {
@@ -419,6 +461,22 @@ extension OpenHomeVolume1Service {
 		public var volumeMilliDbPerStep: UInt32?
 		public var balanceMax: UInt32?
 		public var fadeMax: UInt32?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))OpenHomeVolume1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volume: \(volume ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))mute: \((mute == nil) ? "nil" : (mute! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))balance: \(balance ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))fade: \(fade ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volumeLimit: \(volumeLimit ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volumeMax: \(volumeMax ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volumeUnity: \(volumeUnity ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volumeSteps: \(volumeSteps ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))volumeMilliDbPerStep: \(volumeMilliDbPerStep ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))balanceMax: \(balanceMax ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))fadeMax: \(fadeMax ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

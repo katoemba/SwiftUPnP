@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class OpenHomeCredentials1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -94,6 +95,15 @@ public class OpenHomeCredentials1Service: UPnPService {
 		public var enabled: Bool
 		public var status: String
 		public var data: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))userName: '\(userName)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))enabled: \(enabled == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))status: '\(status)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))data: '\(data)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func get(id: String) async throws -> GetResponse {
 		struct SoapAction: Codable {
@@ -126,6 +136,12 @@ public class OpenHomeCredentials1Service: UPnPService {
 		}
 
 		public var token: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))LoginResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))token: '\(token)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func login(id: String) async throws -> LoginResponse {
 		struct SoapAction: Codable {
@@ -158,6 +174,12 @@ public class OpenHomeCredentials1Service: UPnPService {
 		}
 
 		public var newToken: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))ReLoginResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))newToken: '\(newToken)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func reLogin(id: String, currentToken: String) async throws -> ReLoginResponse {
 		struct SoapAction: Codable {
@@ -192,6 +214,12 @@ public class OpenHomeCredentials1Service: UPnPService {
 		}
 
 		public var ids: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetIdsResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))ids: '\(ids)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getIds() async throws -> GetIdsResponse {
 		struct SoapAction: Codable {
@@ -222,6 +250,12 @@ public class OpenHomeCredentials1Service: UPnPService {
 		}
 
 		public var publicKey: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetPublicKeyResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))publicKey: '\(publicKey)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getPublicKey() async throws -> GetPublicKeyResponse {
 		struct SoapAction: Codable {
@@ -252,6 +286,12 @@ public class OpenHomeCredentials1Service: UPnPService {
 		}
 
 		public var sequenceNumber: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))GetSequenceNumberResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sequenceNumber: \(sequenceNumber)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func getSequenceNumber() async throws -> GetSequenceNumberResponse {
 		struct SoapAction: Codable {
@@ -290,6 +330,14 @@ extension OpenHomeCredentials1Service {
 		public var ids: String?
 		public var publicKey: String?
 		public var sequenceNumber: UInt32?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))OpenHomeCredentials1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))ids: '\(ids ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))publicKey: '\(publicKey ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sequenceNumber: \(sequenceNumber ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {

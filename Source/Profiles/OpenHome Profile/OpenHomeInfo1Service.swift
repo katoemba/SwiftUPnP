@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import XMLCoder
+import os.log
 
 public class OpenHomeInfo1Service: UPnPService {
 	struct Envelope<T: Codable>: Codable {
@@ -21,6 +22,14 @@ public class OpenHomeInfo1Service: UPnPService {
 		public var trackCount: UInt32
 		public var detailsCount: UInt32
 		public var metatextCount: UInt32
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))CountersResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))trackCount: \(trackCount)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))detailsCount: \(detailsCount)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))metatextCount: \(metatextCount)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func counters() async throws -> CountersResponse {
 		struct SoapAction: Codable {
@@ -53,6 +62,13 @@ public class OpenHomeInfo1Service: UPnPService {
 
 		public var uri: String
 		public var metadata: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))TrackResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))uri: '\(uri)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))metadata: '\(metadata)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func track() async throws -> TrackResponse {
 		struct SoapAction: Codable {
@@ -93,6 +109,17 @@ public class OpenHomeInfo1Service: UPnPService {
 		public var sampleRate: UInt32
 		public var lossless: Bool
 		public var codecName: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))DetailsResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))duration: \(duration)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))bitRate: \(bitRate)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))bitDepth: \(bitDepth)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sampleRate: \(sampleRate)")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))lossless: \(lossless == true ? "true" : "false")")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))codecName: '\(codecName)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func details() async throws -> DetailsResponse {
 		struct SoapAction: Codable {
@@ -123,6 +150,12 @@ public class OpenHomeInfo1Service: UPnPService {
 		}
 
 		public var value: String
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))MetatextResponse {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))value: '\(value)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 	public func metatext() async throws -> MetatextResponse {
 		struct SoapAction: Codable {
@@ -179,6 +212,23 @@ extension OpenHomeInfo1Service {
 		public var lossless: Bool?
 		public var codecName: String?
 		public var metatext: String?
+
+		public func log(deep: Bool = false, indent: Int = 0) {
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))OpenHomeInfo1ServiceState {")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))trackCount: \(trackCount ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))detailsCount: \(detailsCount ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))metatextCount: \(metatextCount ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))uri: '\(uri ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))metadata: '\(metadata ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))duration: \(duration ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))bitRate: \(bitRate ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))bitDepth: \(bitDepth ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))sampleRate: \(sampleRate ?? 0)'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))lossless: \((lossless == nil) ? "nil" : (lossless! == true ? "true" : "false"))")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))codecName: '\(codecName ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent+1))metatext: '\(metatext ?? "nil")'")
+			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
+		}
 	}
 
 	public func state(xml: Data) throws -> State {
