@@ -125,10 +125,10 @@ extension scdp {
             separator = ", "
         }
         if action.hasOutput {
-            code += ") async throws -> \(action.name)Response {\n"
+            code += "\(separator)log: UPnPService.MessageLog = .none) async throws -> \(action.name)Response {\n"
         }
         else {
-            code += ") async throws {\n"
+            code += "\(separator)log: UPnPService.MessageLog = .none) async throws {\n"
         }
         code += generateSoapActionStruct(action)
         code += generateBodyStruct(action)
@@ -138,7 +138,7 @@ extension scdp {
             for argument in action.inArguments {
                 code += ", \(argument.name.uncapitalizeFirstLetter()): \(argument.name.uncapitalizeFirstLetter())"
             }
-            code += "))))\n"
+            code += "))), log: log)\n"
             code += "\n"
             code += "\t\tguard let response = result.body.response else { throw ServiceParseError.noValidResponse }\n"
             code += "\t\treturn response\n"
@@ -148,7 +148,7 @@ extension scdp {
             for argument in action.inArguments {
                 code += ", \(argument.name.uncapitalizeFirstLetter()): \(argument.name.uncapitalizeFirstLetter())"
             }
-            code += "))))\n"
+            code += "))), log: log)\n"
         }
         code += "\t}\n"
         code += "\n"

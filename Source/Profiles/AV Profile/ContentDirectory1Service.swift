@@ -39,7 +39,7 @@ public class ContentDirectory1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func browse(objectID: String, browseFlag: A_ARG_TYPE_BrowseFlagEnum, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String) async throws -> BrowseResponse {
+	public func browse(objectID: String, browseFlag: A_ARG_TYPE_BrowseFlagEnum, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String, log: UPnPService.MessageLog = .none) async throws -> BrowseResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -68,7 +68,7 @@ public class ContentDirectory1Service: UPnPService {
 			var action: SoapAction?
 			var response: BrowseResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Browse", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), objectID: objectID, browseFlag: browseFlag, filter: filter, startingIndex: startingIndex, requestedCount: requestedCount, sortCriteria: sortCriteria))))
+		let result: Envelope<Body> = try await postWithResult(action: "Browse", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), objectID: objectID, browseFlag: browseFlag, filter: filter, startingIndex: startingIndex, requestedCount: requestedCount, sortCriteria: sortCriteria))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -87,7 +87,7 @@ public class ContentDirectory1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getSortCapabilities() async throws -> GetSortCapabilitiesResponse {
+	public func getSortCapabilities(log: UPnPService.MessageLog = .none) async throws -> GetSortCapabilitiesResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -104,7 +104,7 @@ public class ContentDirectory1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetSortCapabilitiesResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetSortCapabilities", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetSortCapabilities", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -123,7 +123,7 @@ public class ContentDirectory1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getSystemUpdateID() async throws -> GetSystemUpdateIDResponse {
+	public func getSystemUpdateID(log: UPnPService.MessageLog = .none) async throws -> GetSystemUpdateIDResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -140,7 +140,7 @@ public class ContentDirectory1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetSystemUpdateIDResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetSystemUpdateID", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetSystemUpdateID", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -159,7 +159,7 @@ public class ContentDirectory1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getSearchCapabilities() async throws -> GetSearchCapabilitiesResponse {
+	public func getSearchCapabilities(log: UPnPService.MessageLog = .none) async throws -> GetSearchCapabilitiesResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -176,7 +176,7 @@ public class ContentDirectory1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetSearchCapabilitiesResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetSearchCapabilities", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetSearchCapabilities", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -204,7 +204,7 @@ public class ContentDirectory1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func search(containerID: String, searchCriteria: String, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String) async throws -> SearchResponse {
+	public func search(containerID: String, searchCriteria: String, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String, log: UPnPService.MessageLog = .none) async throws -> SearchResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -233,7 +233,7 @@ public class ContentDirectory1Service: UPnPService {
 			var action: SoapAction?
 			var response: SearchResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Search", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), containerID: containerID, searchCriteria: searchCriteria, filter: filter, startingIndex: startingIndex, requestedCount: requestedCount, sortCriteria: sortCriteria))))
+		let result: Envelope<Body> = try await postWithResult(action: "Search", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), containerID: containerID, searchCriteria: searchCriteria, filter: filter, startingIndex: startingIndex, requestedCount: requestedCount, sortCriteria: sortCriteria))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response

@@ -25,7 +25,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func metadata() async throws -> MetadataResponse {
+	public func metadata(log: UPnPService.MessageLog = .none) async throws -> MetadataResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -42,7 +42,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: MetadataResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Metadata", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "Metadata", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -61,7 +61,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func imagesXml() async throws -> ImagesXmlResponse {
+	public func imagesXml(log: UPnPService.MessageLog = .none) async throws -> ImagesXmlResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -78,7 +78,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: ImagesXmlResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "ImagesXml", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "ImagesXml", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -99,7 +99,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func playlistReadArray(id: UInt32) async throws -> PlaylistReadArrayResponse {
+	public func playlistReadArray(id: UInt32, log: UPnPService.MessageLog = .none) async throws -> PlaylistReadArrayResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -118,7 +118,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: PlaylistReadArrayResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "PlaylistReadArray", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))))
+		let result: Envelope<Body> = try await postWithResult(action: "PlaylistReadArray", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -137,7 +137,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func playlistReadList(idList: String) async throws -> PlaylistReadListResponse {
+	public func playlistReadList(idList: String, log: UPnPService.MessageLog = .none) async throws -> PlaylistReadListResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -156,7 +156,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: PlaylistReadListResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "PlaylistReadList", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), idList: idList))))
+		let result: Envelope<Body> = try await postWithResult(action: "PlaylistReadList", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), idList: idList))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -181,7 +181,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func playlistRead(id: UInt32) async throws -> PlaylistReadResponse {
+	public func playlistRead(id: UInt32, log: UPnPService.MessageLog = .none) async throws -> PlaylistReadResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -200,13 +200,13 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: PlaylistReadResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "PlaylistRead", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))))
+		let result: Envelope<Body> = try await postWithResult(action: "PlaylistRead", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func playlistSetName(id: UInt32, name: String) async throws {
+	public func playlistSetName(id: UInt32, name: String, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -225,10 +225,10 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "PlaylistSetName", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, name: name))))
+		try await post(action: "PlaylistSetName", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, name: name))), log: log)
 	}
 
-	public func playlistSetDescription(id: UInt32, description: String) async throws {
+	public func playlistSetDescription(id: UInt32, description: String, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -247,10 +247,10 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "PlaylistSetDescription", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, description: description))))
+		try await post(action: "PlaylistSetDescription", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, description: description))), log: log)
 	}
 
-	public func playlistSetImageId(id: UInt32, imageId: UInt32) async throws {
+	public func playlistSetImageId(id: UInt32, imageId: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -269,7 +269,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "PlaylistSetImageId", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, imageId: imageId))))
+		try await post(action: "PlaylistSetImageId", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, imageId: imageId))), log: log)
 	}
 
 	public struct PlaylistInsertResponse: Codable {
@@ -285,7 +285,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func playlistInsert(afterId: UInt32, name: String, description: String, imageId: UInt32) async throws -> PlaylistInsertResponse {
+	public func playlistInsert(afterId: UInt32, name: String, description: String, imageId: UInt32, log: UPnPService.MessageLog = .none) async throws -> PlaylistInsertResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -310,13 +310,13 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: PlaylistInsertResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "PlaylistInsert", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), afterId: afterId, name: name, description: description, imageId: imageId))))
+		let result: Envelope<Body> = try await postWithResult(action: "PlaylistInsert", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), afterId: afterId, name: name, description: description, imageId: imageId))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func playlistDeleteId(value: UInt32) async throws {
+	public func playlistDeleteId(value: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -333,10 +333,10 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "PlaylistDeleteId", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), value: value))))
+		try await post(action: "PlaylistDeleteId", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), value: value))), log: log)
 	}
 
-	public func playlistMove(id: UInt32, afterId: UInt32) async throws {
+	public func playlistMove(id: UInt32, afterId: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -355,7 +355,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "PlaylistMove", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, afterId: afterId))))
+		try await post(action: "PlaylistMove", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, afterId: afterId))), log: log)
 	}
 
 	public struct PlaylistsMaxResponse: Codable {
@@ -371,7 +371,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func playlistsMax() async throws -> PlaylistsMaxResponse {
+	public func playlistsMax(log: UPnPService.MessageLog = .none) async throws -> PlaylistsMaxResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -388,7 +388,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: PlaylistsMaxResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "PlaylistsMax", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "PlaylistsMax", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -407,7 +407,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func tracksMax() async throws -> TracksMaxResponse {
+	public func tracksMax(log: UPnPService.MessageLog = .none) async throws -> TracksMaxResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -424,7 +424,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: TracksMaxResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "TracksMax", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "TracksMax", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -453,7 +453,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func playlistArrays() async throws -> PlaylistArraysResponse {
+	public func playlistArrays(log: UPnPService.MessageLog = .none) async throws -> PlaylistArraysResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -470,7 +470,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: PlaylistArraysResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "PlaylistArrays", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "PlaylistArrays", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -489,7 +489,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func playlistArraysChanged(token: UInt32) async throws -> PlaylistArraysChangedResponse {
+	public func playlistArraysChanged(token: UInt32, log: UPnPService.MessageLog = .none) async throws -> PlaylistArraysChangedResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -508,7 +508,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: PlaylistArraysChangedResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "PlaylistArraysChanged", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), token: token))))
+		let result: Envelope<Body> = try await postWithResult(action: "PlaylistArraysChanged", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), token: token))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -527,7 +527,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func read(id: UInt32, trackId: UInt32) async throws -> ReadResponse {
+	public func read(id: UInt32, trackId: UInt32, log: UPnPService.MessageLog = .none) async throws -> ReadResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -548,7 +548,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: ReadResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Read", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, trackId: trackId))))
+		let result: Envelope<Body> = try await postWithResult(action: "Read", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, trackId: trackId))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -567,7 +567,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func readList(id: UInt32, trackIdList: String) async throws -> ReadListResponse {
+	public func readList(id: UInt32, trackIdList: String, log: UPnPService.MessageLog = .none) async throws -> ReadListResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -588,7 +588,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: ReadListResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "ReadList", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, trackIdList: trackIdList))))
+		let result: Envelope<Body> = try await postWithResult(action: "ReadList", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, trackIdList: trackIdList))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -607,7 +607,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func insert(id: UInt32, afterTrackId: UInt32, udn: String, metadataId: String) async throws -> InsertResponse {
+	public func insert(id: UInt32, afterTrackId: UInt32, udn: String, metadataId: String, log: UPnPService.MessageLog = .none) async throws -> InsertResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -632,13 +632,13 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: InsertResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Insert", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, afterTrackId: afterTrackId, udn: udn, metadataId: metadataId))))
+		let result: Envelope<Body> = try await postWithResult(action: "Insert", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, afterTrackId: afterTrackId, udn: udn, metadataId: metadataId))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func deleteId(trackId: UInt32, value: UInt32) async throws {
+	public func deleteId(trackId: UInt32, value: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -657,10 +657,10 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "DeleteId", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), trackId: trackId, value: value))))
+		try await post(action: "DeleteId", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), trackId: trackId, value: value))), log: log)
 	}
 
-	public func deleteAll(trackId: UInt32) async throws {
+	public func deleteAll(trackId: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -677,7 +677,7 @@ public class OpenHomePlaylistManager1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "DeleteAll", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), trackId: trackId))))
+		try await post(action: "DeleteAll", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), trackId: trackId))), log: log)
 	}
 
 }

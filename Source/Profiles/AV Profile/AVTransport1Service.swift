@@ -145,7 +145,7 @@ public class AVTransport1Service: UPnPService {
 		case frame = "FRAME"
 	}
 
-	public func setAVTransportURI(instanceID: UInt32, currentURI: String, currentURIMetaData: String) async throws {
+	public func setAVTransportURI(instanceID: UInt32, currentURI: String, currentURIMetaData: String, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -166,10 +166,10 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetAVTransportURI", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, currentURI: currentURI, currentURIMetaData: currentURIMetaData))))
+		try await post(action: "SetAVTransportURI", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, currentURI: currentURI, currentURIMetaData: currentURIMetaData))), log: log)
 	}
 
-	public func setNextAVTransportURI(instanceID: UInt32, nextURI: String, nextURIMetaData: String) async throws {
+	public func setNextAVTransportURI(instanceID: UInt32, nextURI: String, nextURIMetaData: String, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -190,7 +190,7 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetNextAVTransportURI", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, nextURI: nextURI, nextURIMetaData: nextURIMetaData))))
+		try await post(action: "SetNextAVTransportURI", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, nextURI: nextURI, nextURIMetaData: nextURIMetaData))), log: log)
 	}
 
 	public struct GetMediaInfoResponse: Codable {
@@ -230,7 +230,7 @@ public class AVTransport1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getMediaInfo(instanceID: UInt32) async throws -> GetMediaInfoResponse {
+	public func getMediaInfo(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetMediaInfoResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -249,7 +249,7 @@ public class AVTransport1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetMediaInfoResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetMediaInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetMediaInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -274,7 +274,7 @@ public class AVTransport1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getTransportInfo(instanceID: UInt32) async throws -> GetTransportInfoResponse {
+	public func getTransportInfo(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetTransportInfoResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -293,7 +293,7 @@ public class AVTransport1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetTransportInfoResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetTransportInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetTransportInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -333,7 +333,7 @@ public class AVTransport1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getPositionInfo(instanceID: UInt32) async throws -> GetPositionInfoResponse {
+	public func getPositionInfo(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetPositionInfoResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -352,7 +352,7 @@ public class AVTransport1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetPositionInfoResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetPositionInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetPositionInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -377,7 +377,7 @@ public class AVTransport1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getDeviceCapabilities(instanceID: UInt32) async throws -> GetDeviceCapabilitiesResponse {
+	public func getDeviceCapabilities(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetDeviceCapabilitiesResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -396,7 +396,7 @@ public class AVTransport1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetDeviceCapabilitiesResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetDeviceCapabilities", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetDeviceCapabilities", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -418,7 +418,7 @@ public class AVTransport1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getTransportSettings(instanceID: UInt32) async throws -> GetTransportSettingsResponse {
+	public func getTransportSettings(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetTransportSettingsResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -437,13 +437,13 @@ public class AVTransport1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetTransportSettingsResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetTransportSettings", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetTransportSettings", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func stop(instanceID: UInt32) async throws {
+	public func stop(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -460,10 +460,10 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Stop", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		try await post(action: "Stop", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 	}
 
-	public func play(instanceID: UInt32, speed: TransportPlaySpeedEnum) async throws {
+	public func play(instanceID: UInt32, speed: TransportPlaySpeedEnum, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -482,10 +482,10 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Play", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, speed: speed))))
+		try await post(action: "Play", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, speed: speed))), log: log)
 	}
 
-	public func pause(instanceID: UInt32) async throws {
+	public func pause(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -502,10 +502,10 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Pause", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		try await post(action: "Pause", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 	}
 
-	public func record(instanceID: UInt32) async throws {
+	public func record(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -522,10 +522,10 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Record", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		try await post(action: "Record", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 	}
 
-	public func seek(instanceID: UInt32, unit: A_ARG_TYPE_SeekModeEnum, target: String) async throws {
+	public func seek(instanceID: UInt32, unit: A_ARG_TYPE_SeekModeEnum, target: String, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -546,10 +546,10 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Seek", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, unit: unit, target: target))))
+		try await post(action: "Seek", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, unit: unit, target: target))), log: log)
 	}
 
-	public func next(instanceID: UInt32) async throws {
+	public func next(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -566,10 +566,10 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Next", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		try await post(action: "Next", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 	}
 
-	public func previous(instanceID: UInt32) async throws {
+	public func previous(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -586,10 +586,10 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Previous", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		try await post(action: "Previous", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 	}
 
-	public func setPlayMode(instanceID: UInt32, newPlayMode: CurrentPlayModeEnum) async throws {
+	public func setPlayMode(instanceID: UInt32, newPlayMode: CurrentPlayModeEnum, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -608,10 +608,10 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetPlayMode", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, newPlayMode: newPlayMode))))
+		try await post(action: "SetPlayMode", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, newPlayMode: newPlayMode))), log: log)
 	}
 
-	public func setRecordQualityMode(instanceID: UInt32, newRecordQualityMode: CurrentRecordQualityModeEnum) async throws {
+	public func setRecordQualityMode(instanceID: UInt32, newRecordQualityMode: CurrentRecordQualityModeEnum, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -630,7 +630,7 @@ public class AVTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetRecordQualityMode", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, newRecordQualityMode: newRecordQualityMode))))
+		try await post(action: "SetRecordQualityMode", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, newRecordQualityMode: newRecordQualityMode))), log: log)
 	}
 
 	public struct GetCurrentTransportActionsResponse: Codable {
@@ -646,7 +646,7 @@ public class AVTransport1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getCurrentTransportActions(instanceID: UInt32) async throws -> GetCurrentTransportActionsResponse {
+	public func getCurrentTransportActions(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetCurrentTransportActionsResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -665,7 +665,7 @@ public class AVTransport1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetCurrentTransportActionsResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetCurrentTransportActions", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetCurrentTransportActions", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response

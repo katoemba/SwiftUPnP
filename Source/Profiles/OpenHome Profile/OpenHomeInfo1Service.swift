@@ -31,7 +31,7 @@ public class OpenHomeInfo1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func counters() async throws -> CountersResponse {
+	public func counters(log: UPnPService.MessageLog = .none) async throws -> CountersResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -48,7 +48,7 @@ public class OpenHomeInfo1Service: UPnPService {
 			var action: SoapAction?
 			var response: CountersResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Counters", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "Counters", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -70,7 +70,7 @@ public class OpenHomeInfo1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func track() async throws -> TrackResponse {
+	public func track(log: UPnPService.MessageLog = .none) async throws -> TrackResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -87,7 +87,7 @@ public class OpenHomeInfo1Service: UPnPService {
 			var action: SoapAction?
 			var response: TrackResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Track", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "Track", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -121,7 +121,7 @@ public class OpenHomeInfo1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func details() async throws -> DetailsResponse {
+	public func details(log: UPnPService.MessageLog = .none) async throws -> DetailsResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -138,7 +138,7 @@ public class OpenHomeInfo1Service: UPnPService {
 			var action: SoapAction?
 			var response: DetailsResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Details", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "Details", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -157,7 +157,7 @@ public class OpenHomeInfo1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func metatext() async throws -> MetatextResponse {
+	public func metatext(log: UPnPService.MessageLog = .none) async throws -> MetatextResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -174,7 +174,7 @@ public class OpenHomeInfo1Service: UPnPService {
 			var action: SoapAction?
 			var response: MetatextResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Metatext", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "Metatext", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response

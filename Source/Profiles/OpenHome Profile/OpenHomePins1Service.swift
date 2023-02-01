@@ -25,7 +25,7 @@ public class OpenHomePins1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getDeviceMax() async throws -> GetDeviceMaxResponse {
+	public func getDeviceMax(log: UPnPService.MessageLog = .none) async throws -> GetDeviceMaxResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -42,7 +42,7 @@ public class OpenHomePins1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetDeviceMaxResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetDeviceMax", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetDeviceMax", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -61,7 +61,7 @@ public class OpenHomePins1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getAccountMax() async throws -> GetAccountMaxResponse {
+	public func getAccountMax(log: UPnPService.MessageLog = .none) async throws -> GetAccountMaxResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -78,7 +78,7 @@ public class OpenHomePins1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetAccountMaxResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetAccountMax", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetAccountMax", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -97,7 +97,7 @@ public class OpenHomePins1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getModes() async throws -> GetModesResponse {
+	public func getModes(log: UPnPService.MessageLog = .none) async throws -> GetModesResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -114,7 +114,7 @@ public class OpenHomePins1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetModesResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetModes", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetModes", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -133,7 +133,7 @@ public class OpenHomePins1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getIdArray() async throws -> GetIdArrayResponse {
+	public func getIdArray(log: UPnPService.MessageLog = .none) async throws -> GetIdArrayResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -150,7 +150,7 @@ public class OpenHomePins1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetIdArrayResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetIdArray", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetIdArray", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -169,7 +169,7 @@ public class OpenHomePins1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getCloudConnected() async throws -> GetCloudConnectedResponse {
+	public func getCloudConnected(log: UPnPService.MessageLog = .none) async throws -> GetCloudConnectedResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -186,7 +186,7 @@ public class OpenHomePins1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetCloudConnectedResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetCloudConnected", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetCloudConnected", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -205,7 +205,7 @@ public class OpenHomePins1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func readList(ids: String) async throws -> ReadListResponse {
+	public func readList(ids: String, log: UPnPService.MessageLog = .none) async throws -> ReadListResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -224,13 +224,13 @@ public class OpenHomePins1Service: UPnPService {
 			var action: SoapAction?
 			var response: ReadListResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "ReadList", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), ids: ids))))
+		let result: Envelope<Body> = try await postWithResult(action: "ReadList", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), ids: ids))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func invokeId(id: UInt32) async throws {
+	public func invokeId(id: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -247,10 +247,10 @@ public class OpenHomePins1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "InvokeId", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))))
+		try await post(action: "InvokeId", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))), log: log)
 	}
 
-	public func invokeIndex(index: UInt32) async throws {
+	public func invokeIndex(index: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -267,10 +267,10 @@ public class OpenHomePins1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "InvokeIndex", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), index: index))))
+		try await post(action: "InvokeIndex", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), index: index))), log: log)
 	}
 
-	public func invokeUri(mode: String, type: String, uri: String, shuffle: Bool) async throws {
+	public func invokeUri(mode: String, type: String, uri: String, shuffle: Bool, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -293,10 +293,10 @@ public class OpenHomePins1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "InvokeUri", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), mode: mode, type: type, uri: uri, shuffle: shuffle))))
+		try await post(action: "InvokeUri", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), mode: mode, type: type, uri: uri, shuffle: shuffle))), log: log)
 	}
 
-	public func setDevice(index: UInt32, mode: String, type: String, uri: String, title: String, description: String, artworkUri: String, shuffle: Bool) async throws {
+	public func setDevice(index: UInt32, mode: String, type: String, uri: String, title: String, description: String, artworkUri: String, shuffle: Bool, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -327,10 +327,10 @@ public class OpenHomePins1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetDevice", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), index: index, mode: mode, type: type, uri: uri, title: title, description: description, artworkUri: artworkUri, shuffle: shuffle))))
+		try await post(action: "SetDevice", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), index: index, mode: mode, type: type, uri: uri, title: title, description: description, artworkUri: artworkUri, shuffle: shuffle))), log: log)
 	}
 
-	public func setAccount(index: UInt32, mode: String, type: String, uri: String, title: String, description: String, artworkUri: String, shuffle: Bool) async throws {
+	public func setAccount(index: UInt32, mode: String, type: String, uri: String, title: String, description: String, artworkUri: String, shuffle: Bool, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -361,10 +361,10 @@ public class OpenHomePins1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetAccount", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), index: index, mode: mode, type: type, uri: uri, title: title, description: description, artworkUri: artworkUri, shuffle: shuffle))))
+		try await post(action: "SetAccount", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), index: index, mode: mode, type: type, uri: uri, title: title, description: description, artworkUri: artworkUri, shuffle: shuffle))), log: log)
 	}
 
-	public func clear(id: UInt32) async throws {
+	public func clear(id: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -381,10 +381,10 @@ public class OpenHomePins1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Clear", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))))
+		try await post(action: "Clear", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))), log: log)
 	}
 
-	public func swap(index1: UInt32, index2: UInt32) async throws {
+	public func swap(index1: UInt32, index2: UInt32, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -403,7 +403,7 @@ public class OpenHomePins1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Swap", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), index1: index1, index2: index2))))
+		try await post(action: "Swap", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), index1: index1, index2: index2))), log: log)
 	}
 
 }

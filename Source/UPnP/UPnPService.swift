@@ -20,6 +20,13 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         case failed
     }
     
+    public enum MessageLog {
+        case none
+        case body
+        case response
+        case bodyAndResponse
+    }
+    
     public static var defaultSubscriptionTimeout = 1800
     
     public let controlUrl: URL
@@ -127,7 +134,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
 
     }
     
-    internal func post(action: String, envelope: Codable) async throws {
+    internal func post(action: String, envelope: Codable, log: MessageLog = .none) async throws {
         var request = URLRequest(url: controlUrl)
         request.httpMethod = "POST"
         request.setValue("text/xml; charset=\"utf-8\"", forHTTPHeaderField: "Content-Type")
@@ -142,11 +149,14 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     
         request.httpBody = httpBody
         request.setValue("\(String(decoding: httpBody, as: UTF8.self).count)", forHTTPHeaderField: "Content-Length")
-
+        if log == .body || log == .bodyAndResponse, let httpBodyString = String(data: httpBody, encoding: .utf8) {
+            Logger.swiftUPnP.info("Body(\(action)): \(httpBodyString)")
+        }
+        
         let (_, _) = try await URLSession.shared.data(for: request)
     }
     
-    internal func postWithResult<T: Decodable>(action: String, envelope: Codable) async throws -> T {
+    internal func postWithResult<T: Decodable>(action: String, envelope: Codable, log: MessageLog = .none) async throws -> T {
         var request = URLRequest(url: controlUrl)
         request.httpMethod = "POST"
         request.setValue("text/xml; charset=\"utf-8\"", forHTTPHeaderField: "Content-Type")
@@ -161,9 +171,14 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     
         request.httpBody = httpBody
         request.setValue("\(String(decoding: httpBody, as: UTF8.self).count)", forHTTPHeaderField: "Content-Length")
+        if log == .body || log == .bodyAndResponse, let httpBodyString = String(data: httpBody, encoding: .utf8) {
+            Logger.swiftUPnP.info("Body(\(action)): \(httpBodyString)")
+        }
 
         let (data, _) = try await URLSession.shared.data(for: request)
-        Logger.swiftUPnP.debug("\(String(data: data, encoding: .utf8) ?? "No data")")
+        if log == .response || log == .bodyAndResponse, let httpResponseBodyString = String(data: data, encoding: .utf8) {
+            Logger.swiftUPnP.info("Response Body(\(action)): \(httpResponseBodyString)")
+        }
         
         let decoder = XMLDecoder()
         decoder.shouldProcessNamespaces = false

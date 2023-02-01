@@ -56,7 +56,7 @@ public class ConnectionManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getCurrentConnectionInfo(connectionID: Int32) async throws -> GetCurrentConnectionInfoResponse {
+	public func getCurrentConnectionInfo(connectionID: Int32, log: UPnPService.MessageLog = .none) async throws -> GetCurrentConnectionInfoResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -75,7 +75,7 @@ public class ConnectionManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetCurrentConnectionInfoResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetCurrentConnectionInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), connectionID: connectionID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetCurrentConnectionInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), connectionID: connectionID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -97,7 +97,7 @@ public class ConnectionManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getProtocolInfo() async throws -> GetProtocolInfoResponse {
+	public func getProtocolInfo(log: UPnPService.MessageLog = .none) async throws -> GetProtocolInfoResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -114,7 +114,7 @@ public class ConnectionManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetProtocolInfoResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetProtocolInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetProtocolInfo", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -133,7 +133,7 @@ public class ConnectionManager1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getCurrentConnectionIDs() async throws -> GetCurrentConnectionIDsResponse {
+	public func getCurrentConnectionIDs(log: UPnPService.MessageLog = .none) async throws -> GetCurrentConnectionIDsResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -150,7 +150,7 @@ public class ConnectionManager1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetCurrentConnectionIDsResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetCurrentConnectionIDs", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetCurrentConnectionIDs", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response

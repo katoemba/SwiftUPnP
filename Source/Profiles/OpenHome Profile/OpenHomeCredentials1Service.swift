@@ -12,7 +12,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 		var body: T
 	}
 
-	public func set(id: String, userName: String, password: Data) async throws {
+	public func set(id: String, userName: String, password: Data, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -33,10 +33,10 @@ public class OpenHomeCredentials1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Set", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, userName: userName, password: password))))
+		try await post(action: "Set", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, userName: userName, password: password))), log: log)
 	}
 
-	public func clear(id: String) async throws {
+	public func clear(id: String, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -53,10 +53,10 @@ public class OpenHomeCredentials1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "Clear", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))))
+		try await post(action: "Clear", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))), log: log)
 	}
 
-	public func setEnabled(id: String, enabled: Bool) async throws {
+	public func setEnabled(id: String, enabled: Bool, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -75,7 +75,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetEnabled", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, enabled: enabled))))
+		try await post(action: "SetEnabled", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, enabled: enabled))), log: log)
 	}
 
 	public struct GetResponse: Codable {
@@ -105,7 +105,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func get(id: String) async throws -> GetResponse {
+	public func get(id: String, log: UPnPService.MessageLog = .none) async throws -> GetResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -124,7 +124,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Get", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))))
+		let result: Envelope<Body> = try await postWithResult(action: "Get", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -143,7 +143,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func login(id: String) async throws -> LoginResponse {
+	public func login(id: String, log: UPnPService.MessageLog = .none) async throws -> LoginResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -162,7 +162,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			var action: SoapAction?
 			var response: LoginResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Login", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))))
+		let result: Envelope<Body> = try await postWithResult(action: "Login", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -181,7 +181,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func reLogin(id: String, currentToken: String) async throws -> ReLoginResponse {
+	public func reLogin(id: String, currentToken: String, log: UPnPService.MessageLog = .none) async throws -> ReLoginResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -202,7 +202,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			var action: SoapAction?
 			var response: ReLoginResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "ReLogin", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, currentToken: currentToken))))
+		let result: Envelope<Body> = try await postWithResult(action: "ReLogin", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), id: id, currentToken: currentToken))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -221,7 +221,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getIds() async throws -> GetIdsResponse {
+	public func getIds(log: UPnPService.MessageLog = .none) async throws -> GetIdsResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -238,7 +238,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetIdsResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetIds", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetIds", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -257,7 +257,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getPublicKey() async throws -> GetPublicKeyResponse {
+	public func getPublicKey(log: UPnPService.MessageLog = .none) async throws -> GetPublicKeyResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -274,7 +274,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetPublicKeyResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetPublicKey", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetPublicKey", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -293,7 +293,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getSequenceNumber() async throws -> GetSequenceNumberResponse {
+	public func getSequenceNumber(log: UPnPService.MessageLog = .none) async throws -> GetSequenceNumberResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -310,7 +310,7 @@ public class OpenHomeCredentials1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetSequenceNumberResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetSequenceNumber", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetSequenceNumber", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response

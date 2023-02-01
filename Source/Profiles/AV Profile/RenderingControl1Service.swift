@@ -49,7 +49,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func listPresets(instanceID: UInt32) async throws -> ListPresetsResponse {
+	public func listPresets(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> ListPresetsResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -68,13 +68,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: ListPresetsResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "ListPresets", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "ListPresets", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func selectPreset(instanceID: UInt32, presetName: A_ARG_TYPE_PresetNameEnum) async throws {
+	public func selectPreset(instanceID: UInt32, presetName: A_ARG_TYPE_PresetNameEnum, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -93,7 +93,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SelectPreset", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, presetName: presetName))))
+		try await post(action: "SelectPreset", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, presetName: presetName))), log: log)
 	}
 
 	public struct GetBrightnessResponse: Codable {
@@ -109,7 +109,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getBrightness(instanceID: UInt32) async throws -> GetBrightnessResponse {
+	public func getBrightness(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetBrightnessResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -128,13 +128,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetBrightnessResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetBrightness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetBrightness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setBrightness(instanceID: UInt32, desiredBrightness: UInt16) async throws {
+	public func setBrightness(instanceID: UInt32, desiredBrightness: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -153,7 +153,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetBrightness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredBrightness: desiredBrightness))))
+		try await post(action: "SetBrightness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredBrightness: desiredBrightness))), log: log)
 	}
 
 	public struct GetContrastResponse: Codable {
@@ -169,7 +169,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getContrast(instanceID: UInt32) async throws -> GetContrastResponse {
+	public func getContrast(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetContrastResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -188,13 +188,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetContrastResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetContrast", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetContrast", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setContrast(instanceID: UInt32, desiredContrast: UInt16) async throws {
+	public func setContrast(instanceID: UInt32, desiredContrast: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -213,7 +213,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetContrast", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredContrast: desiredContrast))))
+		try await post(action: "SetContrast", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredContrast: desiredContrast))), log: log)
 	}
 
 	public struct GetSharpnessResponse: Codable {
@@ -229,7 +229,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getSharpness(instanceID: UInt32) async throws -> GetSharpnessResponse {
+	public func getSharpness(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetSharpnessResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -248,13 +248,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetSharpnessResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetSharpness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetSharpness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setSharpness(instanceID: UInt32, desiredSharpness: UInt16) async throws {
+	public func setSharpness(instanceID: UInt32, desiredSharpness: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -273,7 +273,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetSharpness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredSharpness: desiredSharpness))))
+		try await post(action: "SetSharpness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredSharpness: desiredSharpness))), log: log)
 	}
 
 	public struct GetRedVideoGainResponse: Codable {
@@ -289,7 +289,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getRedVideoGain(instanceID: UInt32) async throws -> GetRedVideoGainResponse {
+	public func getRedVideoGain(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetRedVideoGainResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -308,13 +308,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetRedVideoGainResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetRedVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetRedVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setRedVideoGain(instanceID: UInt32, desiredRedVideoGain: UInt16) async throws {
+	public func setRedVideoGain(instanceID: UInt32, desiredRedVideoGain: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -333,7 +333,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetRedVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredRedVideoGain: desiredRedVideoGain))))
+		try await post(action: "SetRedVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredRedVideoGain: desiredRedVideoGain))), log: log)
 	}
 
 	public struct GetGreenVideoGainResponse: Codable {
@@ -349,7 +349,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getGreenVideoGain(instanceID: UInt32) async throws -> GetGreenVideoGainResponse {
+	public func getGreenVideoGain(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetGreenVideoGainResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -368,13 +368,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetGreenVideoGainResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetGreenVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetGreenVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setGreenVideoGain(instanceID: UInt32, desiredGreenVideoGain: UInt16) async throws {
+	public func setGreenVideoGain(instanceID: UInt32, desiredGreenVideoGain: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -393,7 +393,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetGreenVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredGreenVideoGain: desiredGreenVideoGain))))
+		try await post(action: "SetGreenVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredGreenVideoGain: desiredGreenVideoGain))), log: log)
 	}
 
 	public struct GetBlueVideoGainResponse: Codable {
@@ -409,7 +409,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getBlueVideoGain(instanceID: UInt32) async throws -> GetBlueVideoGainResponse {
+	public func getBlueVideoGain(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetBlueVideoGainResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -428,13 +428,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetBlueVideoGainResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetBlueVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetBlueVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setBlueVideoGain(instanceID: UInt32, desiredBlueVideoGain: UInt16) async throws {
+	public func setBlueVideoGain(instanceID: UInt32, desiredBlueVideoGain: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -453,7 +453,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetBlueVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredBlueVideoGain: desiredBlueVideoGain))))
+		try await post(action: "SetBlueVideoGain", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredBlueVideoGain: desiredBlueVideoGain))), log: log)
 	}
 
 	public struct GetRedVideoBlackLevelResponse: Codable {
@@ -469,7 +469,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getRedVideoBlackLevel(instanceID: UInt32) async throws -> GetRedVideoBlackLevelResponse {
+	public func getRedVideoBlackLevel(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetRedVideoBlackLevelResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -488,13 +488,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetRedVideoBlackLevelResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetRedVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetRedVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setRedVideoBlackLevel(instanceID: UInt32, desiredRedVideoBlackLevel: UInt16) async throws {
+	public func setRedVideoBlackLevel(instanceID: UInt32, desiredRedVideoBlackLevel: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -513,7 +513,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetRedVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredRedVideoBlackLevel: desiredRedVideoBlackLevel))))
+		try await post(action: "SetRedVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredRedVideoBlackLevel: desiredRedVideoBlackLevel))), log: log)
 	}
 
 	public struct GetGreenVideoBlackLevelResponse: Codable {
@@ -529,7 +529,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getGreenVideoBlackLevel(instanceID: UInt32) async throws -> GetGreenVideoBlackLevelResponse {
+	public func getGreenVideoBlackLevel(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetGreenVideoBlackLevelResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -548,13 +548,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetGreenVideoBlackLevelResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetGreenVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetGreenVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setGreenVideoBlackLevel(instanceID: UInt32, desiredGreenVideoBlackLevel: UInt16) async throws {
+	public func setGreenVideoBlackLevel(instanceID: UInt32, desiredGreenVideoBlackLevel: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -573,7 +573,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetGreenVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredGreenVideoBlackLevel: desiredGreenVideoBlackLevel))))
+		try await post(action: "SetGreenVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredGreenVideoBlackLevel: desiredGreenVideoBlackLevel))), log: log)
 	}
 
 	public struct GetBlueVideoBlackLevelResponse: Codable {
@@ -589,7 +589,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getBlueVideoBlackLevel(instanceID: UInt32) async throws -> GetBlueVideoBlackLevelResponse {
+	public func getBlueVideoBlackLevel(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetBlueVideoBlackLevelResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -608,13 +608,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetBlueVideoBlackLevelResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetBlueVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetBlueVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setBlueVideoBlackLevel(instanceID: UInt32, desiredBlueVideoBlackLevel: UInt16) async throws {
+	public func setBlueVideoBlackLevel(instanceID: UInt32, desiredBlueVideoBlackLevel: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -633,7 +633,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetBlueVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredBlueVideoBlackLevel: desiredBlueVideoBlackLevel))))
+		try await post(action: "SetBlueVideoBlackLevel", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredBlueVideoBlackLevel: desiredBlueVideoBlackLevel))), log: log)
 	}
 
 	public struct GetColorTemperatureResponse: Codable {
@@ -649,7 +649,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getColorTemperature(instanceID: UInt32) async throws -> GetColorTemperatureResponse {
+	public func getColorTemperature(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetColorTemperatureResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -668,13 +668,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetColorTemperatureResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetColorTemperature", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetColorTemperature", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setColorTemperature(instanceID: UInt32, desiredColorTemperature: UInt16) async throws {
+	public func setColorTemperature(instanceID: UInt32, desiredColorTemperature: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -693,7 +693,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetColorTemperature", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredColorTemperature: desiredColorTemperature))))
+		try await post(action: "SetColorTemperature", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredColorTemperature: desiredColorTemperature))), log: log)
 	}
 
 	public struct GetHorizontalKeystoneResponse: Codable {
@@ -709,7 +709,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getHorizontalKeystone(instanceID: UInt32) async throws -> GetHorizontalKeystoneResponse {
+	public func getHorizontalKeystone(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetHorizontalKeystoneResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -728,13 +728,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetHorizontalKeystoneResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetHorizontalKeystone", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetHorizontalKeystone", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setHorizontalKeystone(instanceID: UInt32, desiredHorizontalKeystone: Int16) async throws {
+	public func setHorizontalKeystone(instanceID: UInt32, desiredHorizontalKeystone: Int16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -753,7 +753,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetHorizontalKeystone", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredHorizontalKeystone: desiredHorizontalKeystone))))
+		try await post(action: "SetHorizontalKeystone", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredHorizontalKeystone: desiredHorizontalKeystone))), log: log)
 	}
 
 	public struct GetVerticalKeystoneResponse: Codable {
@@ -769,7 +769,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getVerticalKeystone(instanceID: UInt32) async throws -> GetVerticalKeystoneResponse {
+	public func getVerticalKeystone(instanceID: UInt32, log: UPnPService.MessageLog = .none) async throws -> GetVerticalKeystoneResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -788,13 +788,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetVerticalKeystoneResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetVerticalKeystone", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetVerticalKeystone", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setVerticalKeystone(instanceID: UInt32, desiredVerticalKeystone: Int16) async throws {
+	public func setVerticalKeystone(instanceID: UInt32, desiredVerticalKeystone: Int16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -813,7 +813,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetVerticalKeystone", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredVerticalKeystone: desiredVerticalKeystone))))
+		try await post(action: "SetVerticalKeystone", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, desiredVerticalKeystone: desiredVerticalKeystone))), log: log)
 	}
 
 	public struct GetMuteResponse: Codable {
@@ -829,7 +829,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getMute(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetMuteResponse {
+	public func getMute(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, log: UPnPService.MessageLog = .none) async throws -> GetMuteResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -850,13 +850,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetMuteResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetMute", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetMute", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setMute(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, desiredMute: Bool) async throws {
+	public func setMute(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, desiredMute: Bool, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -877,7 +877,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetMute", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel, desiredMute: desiredMute))))
+		try await post(action: "SetMute", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel, desiredMute: desiredMute))), log: log)
 	}
 
 	public struct GetVolumeResponse: Codable {
@@ -893,7 +893,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getVolume(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetVolumeResponse {
+	public func getVolume(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, log: UPnPService.MessageLog = .none) async throws -> GetVolumeResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -914,13 +914,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetVolumeResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetVolume", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetVolume", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setVolume(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, desiredVolume: UInt16) async throws {
+	public func setVolume(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, desiredVolume: UInt16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -941,7 +941,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetVolume", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel, desiredVolume: desiredVolume))))
+		try await post(action: "SetVolume", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel, desiredVolume: desiredVolume))), log: log)
 	}
 
 	public struct GetVolumeDBResponse: Codable {
@@ -957,7 +957,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getVolumeDB(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetVolumeDBResponse {
+	public func getVolumeDB(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, log: UPnPService.MessageLog = .none) async throws -> GetVolumeDBResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -978,13 +978,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetVolumeDBResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetVolumeDB", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetVolumeDB", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setVolumeDB(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, desiredVolume: Int16) async throws {
+	public func setVolumeDB(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, desiredVolume: Int16, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -1005,7 +1005,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetVolumeDB", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel, desiredVolume: desiredVolume))))
+		try await post(action: "SetVolumeDB", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel, desiredVolume: desiredVolume))), log: log)
 	}
 
 	public struct GetVolumeDBRangeResponse: Codable {
@@ -1024,7 +1024,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getVolumeDBRange(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetVolumeDBRangeResponse {
+	public func getVolumeDBRange(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, log: UPnPService.MessageLog = .none) async throws -> GetVolumeDBRangeResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -1045,7 +1045,7 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetVolumeDBRangeResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetVolumeDBRange", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetVolumeDBRange", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
@@ -1064,7 +1064,7 @@ public class RenderingControl1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func getLoudness(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum) async throws -> GetLoudnessResponse {
+	public func getLoudness(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, log: UPnPService.MessageLog = .none) async throws -> GetLoudnessResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -1085,13 +1085,13 @@ public class RenderingControl1Service: UPnPService {
 			var action: SoapAction?
 			var response: GetLoudnessResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "GetLoudness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))))
+		let result: Envelope<Body> = try await postWithResult(action: "GetLoudness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
 	}
 
-	public func setLoudness(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, desiredLoudness: Bool) async throws {
+	public func setLoudness(instanceID: UInt32, channel: A_ARG_TYPE_ChannelEnum, desiredLoudness: Bool, log: UPnPService.MessageLog = .none) async throws {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -1112,7 +1112,7 @@ public class RenderingControl1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetLoudness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel, desiredLoudness: desiredLoudness))))
+		try await post(action: "SetLoudness", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), instanceID: instanceID, channel: channel, desiredLoudness: desiredLoudness))), log: log)
 	}
 
 }

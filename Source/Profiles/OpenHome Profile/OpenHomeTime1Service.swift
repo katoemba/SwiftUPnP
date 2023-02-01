@@ -31,7 +31,7 @@ public class OpenHomeTime1Service: UPnPService {
 			Logger.swiftUPnP.debug("\(Logger.indent(indent))}")
 		}
 	}
-	public func time() async throws -> TimeResponse {
+	public func time(log: UPnPService.MessageLog = .none) async throws -> TimeResponse {
 		struct SoapAction: Codable {
 			enum CodingKeys: String, CodingKey {
 				case urn = "xmlns:u"
@@ -48,7 +48,7 @@ public class OpenHomeTime1Service: UPnPService {
 			var action: SoapAction?
 			var response: TimeResponse?
 		}
-		let result: Envelope<Body> = try await postWithResult(action: "Time", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))))
+		let result: Envelope<Body> = try await postWithResult(action: "Time", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)))), log: log)
 
 		guard let response = result.body.response else { throw ServiceParseError.noValidResponse }
 		return response
