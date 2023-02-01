@@ -36,9 +36,15 @@ public class UPnPRegistry {
     private lazy var eventPublisher: AnyPublisher<(String, Data), Never> = {
         eventSubject.share().eraseToAnyPublisher()
     }()
+    private let types: [String]
     
-    init() {
-        httpServerPort = IPHelper.freePortFromRange(range: 51000..<51099)
+    init(types: [String] = ["urn:schemas-upnp-org:device:MediaServer:1", "urn:linn-co-uk:device:Source:1", "urn:av-openhome-org:device:Source:1"],
+         httpServerPortRange: Range<UInt16> = 51000..<51099) {
+        self.types = types.filter { $0.contains(":device:") }
+        if self.types.count != types.count {
+            Logger.swiftUPnP.error("Only device types are discovered, service types will be discovered indirectly from the device description. Non-device types will be filtered.")
+        }
+        httpServerPort = IPHelper.freePortFromRange(range: httpServerPortRange)
         httpServer = HttpServer()
         httpServer[eventCallBackPath] = { [weak self] request in
             guard let self else { return HttpResponse.internalServerError(.text("Self released")) }
@@ -59,9 +65,7 @@ public class UPnPRegistry {
     }
     
     public func startDiscovery() throws {
-        try discoveryEngine.startDiscovery(forTypes: ["urn:schemas-upnp-org:device:MediaServer:1",
-                                                      "urn:linn-co-uk:device:Source:1",
-                                                      "urn:av-openhome-org:device:Source:1"])
+        try discoveryEngine.startDiscovery(forTypes: types)
         
         discoveryEngine.searchRequest()
     }
