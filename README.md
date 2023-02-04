@@ -104,6 +104,9 @@ A full implementation of standard OpenHome services and state changes:
 ## How to include in a project
 The package can be included using Swift Package Manager.
 
+## License
+SwiftUPnP is released under the MIT license.
+
 ## Dependencies
 SwiftUPnP use the following packages:
 - Swifter provides a small http server to listen for state changes triggered by UPnP devices.
