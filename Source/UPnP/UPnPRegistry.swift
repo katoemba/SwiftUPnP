@@ -77,19 +77,23 @@ public class UPnPRegistry {
             
             return HttpResponse.ok(.text(""))
         }
-
-        Task {
-            await startHTTPServer()
-        }
     }
     
     public func startDiscovery() throws {
-        try discoveryEngine.startDiscovery(forTypes: types)
-        
-        discoveryEngine.searchRequest()
+        Task {
+            await startHTTPServer()
+            try discoveryEngine.startDiscovery(forTypes: types)
+            discoveryEngine.searchRequest()
+        }
     }
     
     public func stopDiscovery() {
+        Task {
+            await stopHTTPServer()
+            await MainActor.run {
+                devices.removeAll(keepingCapacity: false)
+            }
+        }
         discoveryEngine.stopDiscovery()
     }
     
