@@ -1,5 +1,5 @@
 # SwiftUPnP
-A modern Swift based UPnP implementation.
+A 100% Swift based UPnP implementation that draws inspiration from UPnAtom.
 
 Key features that make this easy to use in a modern swift environment:
 - Concurrency and thread safety through async/await and @MainActor
