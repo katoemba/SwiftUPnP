@@ -50,7 +50,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     
     public let controlUrl: URL
     public let scpdUrl: URL
-    public let eventUrl: URL
+    public let eventUrl: URL?
     public let serviceType: String
     public let serviceId: String
     public internal(set) unowned var device: UPnPDevice
@@ -97,7 +97,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     }
     private var bag = Set<AnyCancellable>()
     
-    internal init(device: UPnPDevice, controlUrl: URL, scpdUrl: URL, eventUrl: URL, serviceType: String, serviceId: String, eventPublisher: AnyPublisher<(String, Data), Never>, eventCallbackUrl: URL?) {
+    internal init(device: UPnPDevice, controlUrl: URL, scpdUrl: URL, eventUrl: URL?, serviceType: String, serviceId: String, eventPublisher: AnyPublisher<(String, Data), Never>, eventCallbackUrl: URL?) {
         self.device = device
         self.controlUrl = controlUrl
         self.scpdUrl = scpdUrl
@@ -206,7 +206,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     }
     
     public func subscribeToEvents() async {
-        guard let eventCallbackUrl = eventCallbackUrl else { return }
+        guard let eventUrl = eventUrl, let eventCallbackUrl = eventCallbackUrl else { return }
         guard await startSubcribing() else { return }
         
         var request = URLRequest(url: eventUrl)
@@ -243,7 +243,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     }
     
     internal func renewSubscriptionToEvents() async {
-        guard let subscriptionId = await startRenewing() else { return }
+        guard let eventUrl = eventUrl, let subscriptionId = await startRenewing() else { return }
         
         var request = URLRequest(url: eventUrl)
         request.httpMethod = "SUBSCRIBE"
@@ -278,7 +278,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     }
     
     public func unsubscribeFromEvents() async {
-        guard await startUnubcribing() else { return }
+        guard let eventUrl = eventUrl, await startUnubcribing() else { return }
         
         var request = URLRequest(url: eventUrl)
         request.httpMethod = "UNSUBSCRIBE"

@@ -132,6 +132,10 @@ extension UPnPDevice {
         services.first(where: { $0.serviceType == "urn:av-openhome-org:service:Product:1" }) as? OpenHomeProduct1Service
     }
     
+    public var openHomeProduct2Service: OpenHomeProduct2Service? {
+        services.first(where: { $0.serviceType == "urn:av-openhome-org:service:Product:2" }) as? OpenHomeProduct2Service
+    }
+    
     public var openHomeRadio1Service: OpenHomeRadio1Service? {
         services.first(where: { $0.serviceType == "urn:av-openhome-org:service:Radio:1" }) as? OpenHomeRadio1Service
     }
@@ -146,5 +150,17 @@ extension UPnPDevice {
     
     public var openHomeVolume1Service: OpenHomeVolume1Service? {
         services.first(where: { $0.serviceType == "urn:av-openhome-org:service:Volume:1" }) as? OpenHomeVolume1Service
+    }
+    
+    public var openHomeVolume2Service: OpenHomeVolume2Service? {
+        services.first(where: { $0.serviceType == "urn:av-openhome-org:service:Volume:2" }) as? OpenHomeVolume2Service
+    }
+    
+    public var openHomeSender1Service: OpenHomeSender1Service? {
+        services.first(where: { $0.serviceType == "urn:av-openhome-org:service:Sender:1" }) as? OpenHomeSender1Service
+    }
+    
+    public var openHomeReceiver1Service: OpenHomeReceiver1Service? {
+        services.first(where: { $0.serviceType == "urn:av-openhome-org:service:Receiver:1" }) as? OpenHomeReceiver1Service
     }
 }
