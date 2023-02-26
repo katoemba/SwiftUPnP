@@ -416,7 +416,7 @@ public extension ContentDirectory1Service {
                                         sortCriteria: sortCriteria)
         
         let decoder = XMLDecoder()
-        decoder.shouldProcessNamespaces = true
+        decoder.shouldProcessNamespaces = false
         
         guard let data = response.result.data(using: .utf8) else {
             throw ServiceParseError.noValidResponse
