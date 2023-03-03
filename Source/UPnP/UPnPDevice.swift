@@ -28,11 +28,26 @@ import Foundation
 import XMLCoder
 import os.log
 
+internal struct UPnPDeviceDescription: Codable {
+    let uuid: String
+    let deviceId: String
+    let deviceType: String
+    let url: URL
+}
+
 public class UPnPDevice: Equatable, Identifiable, Hashable {
     public let uuid: String
     public let deviceId: String
     public let deviceType: String
     public let url: URL
+    
+    internal var upnpDeviceDescription: UPnPDeviceDescription {
+        UPnPDeviceDescription(uuid: uuid, deviceId: deviceId, deviceType: deviceType, url: url)
+    }
+    
+    public var data: Data? {
+        try? JSONEncoder().encode(upnpDeviceDescription)
+    }
     
     public var deviceDefinition: UPnPDeviceDefinition?
     @MainActor
@@ -45,6 +60,19 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
         self.deviceId = deviceId
         self.deviceType = deviceType
         self.url = url
+        self.servicesLoaded = false
+    }
+    
+    public static func reanimate(from data: Data) -> UPnPDevice? {
+        guard let upnpDeviceDescription = try? JSONDecoder().decode(UPnPDeviceDescription.self, from: data) else { return nil }
+        return UPnPDevice(upnpDeviceDescription: upnpDeviceDescription)
+    }
+    
+    internal init(upnpDeviceDescription: UPnPDeviceDescription) {
+        self.uuid = upnpDeviceDescription.uuid
+        self.deviceId = upnpDeviceDescription.deviceId
+        self.deviceType = upnpDeviceDescription.deviceType
+        self.url = upnpDeviceDescription.url
         self.servicesLoaded = false
     }
 

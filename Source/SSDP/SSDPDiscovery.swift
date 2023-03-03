@@ -51,15 +51,19 @@ public class SSDPDiscovery {
     func startDiscovery(forTypes types: [String]) throws {
         guard multicastGroup == nil else { throw UPnPError.alreadyConnected }
         let multicastGroup = try NWMulticastGroup(for:[.hostPort(host: .init(multicastGroupAddress), port: .init(integerLiteral: multicastUDPPort))])
-        let connectionGroup = NWConnectionGroup(with: multicastGroup, using: .udp)
+        let params = NWParameters.udp
+        params.allowLocalEndpointReuse = true
+        let connectionGroup = NWConnectionGroup(with: multicastGroup, using: params)
         
-        connectionGroup.stateUpdateHandler = { (newState) in
+        connectionGroup.stateUpdateHandler = { [weak self] (newState) in
             Logger.swiftUPnP.debug("Connection group entered state \(String(describing: newState))")
             
             switch newState {
             case let .failed(error):
                 Logger.swiftUPnP.error("\(error.localizedDescription)")
-                break
+            case .cancelled:
+                self?.multicastGroup = nil
+                self?.connectionGroup = nil
             default:
                 break
             }

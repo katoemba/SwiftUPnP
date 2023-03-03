@@ -133,7 +133,7 @@ public class UPnPRegistry {
     }
     
     @MainActor
-    func add(_ device: UPnPDevice) {
+    public func add(_ device: UPnPDevice) {
         guard devices.contains(where: { $0.id == device.id }) == false else { return }
         devices.append(device)
         
