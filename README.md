@@ -1,5 +1,5 @@
 # SwiftUPnP
-A 100% Swift based UPnP implementation that draws inspiration from UPnAtom.
+A Swift based UPnP implementation that draws inspiration from UPnAtom.
 
 Key features that make this easy to use in a modern swift environment:
 - Concurrency and thread safety through async/await and @MainActor
@@ -15,8 +15,8 @@ The minimum requirements for the SwiftUPnP library are:
 The minimum requirement for the UPnPCodeGenerator executable is macOS 13 Ventura.
 
 ## Device discovery
-SSDP discovery is done using the standard Apple Network framework. Only devices are discovered, the available sources are loaded
-based on the description of the device.
+SSDP discovery is done using CocoaAsyncSocket. There is also support for using the standard Apple Network framework, but this has a known issue when another app is also listening for UPnP devices. 
+Only devices are discovered, the available sources are loaded based on the description of the device.
 (Dis)appearance of devices on the network is published via Combine publishers defined in UPnPRegistery: deviceAdded and deviceRemoved. When a device is published on the subject, it's fully loaded with all included service definitions.
 
 ```swift
@@ -90,16 +90,19 @@ A full implementation of all standard UPnP services and state changes:
 - AVTransport
 
 A full implementation of standard OpenHome services and state changes:
+- OpenHomeConfig
 - OpenHomeCredentials
 - OpenHomeInfo
 - OpenHomePins
 - OpenHomePlaylist
 - OpenHomePlaylistManager
-- OpenHomeProduct
+- OpenHomeProduct(1 or 2)
 - OpenHomeRadio
+- OpenHomeReceiver
+- OpenHomeSender
 - OpenHomeTime
 - OpenHomeTransport
-- OpenHomeVolume
+- OpenHomeVolume(1 or 2)
 
 ## How to include in a project
 The package can be included using Swift Package Manager.
@@ -111,3 +114,4 @@ SwiftUPnP is released under the MIT license.
 SwiftUPnP use the following packages:
 - Swifter provides a small http server to listen for state changes triggered by UPnP devices.
 - XMLCoder is used to encode and decode SOAP envelopes.
+- CocoaAsyncSocket to detect UPnP devices on the network using multicast.

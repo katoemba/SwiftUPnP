@@ -1,5 +1,5 @@
 //
-//  SSDPDiscovery.swift
+//  SSDPDiscoveryProtocol.swift
 //
 //  Copyright (c) 2023 Katoemba Software, (https://rigelian.net/)
 //
@@ -21,90 +21,30 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 //
-//  Created by Berrie Kremers on 31/12/2022.
+//  Created by Berrie Kremers on 03/03/2022.
 //
 
+
 import Foundation
-import Network
-import Combine
-import os.log
 
 public enum UPnPError: Error {
     case alreadyConnected
     case networkingError(String)
 }
 
-public class SSDPDiscovery {
-    enum SSDPMessageType {
-        case searchResponse
-        case availableNotification
-        case updateNotification
-        case unavailableNotification
-    }
-    
-    private let multicastGroupAddress = "239.255.255.250"
-    private let multicastUDPPort: UInt16 = 1900
-    private var multicastGroup: NWMulticastGroup?
-    private var connectionGroup: NWConnectionGroup?
-    private var types = [String]()
-    
-    func startDiscovery(forTypes types: [String]) throws {
-        guard multicastGroup == nil else { throw UPnPError.alreadyConnected }
-        let multicastGroup = try NWMulticastGroup(for:[.hostPort(host: .init(multicastGroupAddress), port: .init(integerLiteral: multicastUDPPort))])
-        let params = NWParameters.udp
-        params.allowLocalEndpointReuse = true
-        let connectionGroup = NWConnectionGroup(with: multicastGroup, using: params)
-        
-        connectionGroup.stateUpdateHandler = { [weak self] (newState) in
-            Logger.swiftUPnP.debug("Connection group entered state \(String(describing: newState))")
-            
-            switch newState {
-            case let .failed(error):
-                Logger.swiftUPnP.error("\(error.localizedDescription)")
-            case .cancelled:
-                self?.multicastGroup = nil
-                self?.connectionGroup = nil
-            default:
-                break
-            }
-        }
-        connectionGroup.setReceiveHandler(maximumMessageSize: 65535, rejectOversizedMessages: true) { (message, content, isComplete) in
-            if let content = content {
-                self.processData(content)
-            }
-        }
-        
-        connectionGroup.start(queue: .main)
-        
-        self.types = types
-        self.multicastGroup = multicastGroup
-        self.connectionGroup = connectionGroup
-    }
-    
-    func stopDiscovery() {
-        guard let connectionGroup = connectionGroup else { return }
-        connectionGroup.cancel()
-        multicastGroup = nil
-        self.connectionGroup = nil
-        types = []
-    }
-    
-    func searchRequest() {
-        guard let connectionGroup = connectionGroup else { return }
+enum SSDPMessageType {
+    case searchResponse
+    case availableNotification
+    case updateNotification
+    case unavailableNotification
+}
 
-        for type in types {
-            if let data = self.searchRequestData(forType: type) {
-                connectionGroup.send(content: data) { error in
-                    if let error = error as? NSError {
-                        self.stopDiscovery()
-                        Logger.swiftUPnP.error("\(error.localizedDescription)")
-                    }
-                }
-            }
-        }
-    }
+class SSDPDiscovery: NSObject {
+    let multicastGroupAddress = "239.255.255.250"
+    let multicastUDPPort: UInt16 = 1900
+    var types = [String]()
     
-    private func searchRequestData(forType type: String) -> Data? {
+    func searchRequestData(forType type: String) -> Data? {
         ["M-SEARCH * HTTP/1.1",
          "HOST: \(multicastGroupAddress):\(multicastUDPPort)",
          "MAN: \"ssdp:discover\"",
@@ -113,7 +53,7 @@ public class SSDPDiscovery {
          "USER-AGENT: \(UserAgentGenerator().UAString)\r\n\r\n"].joined(separator: "\r\n").data(using: .utf8)
     }
     
-    private func handleSSDPMessage(_ messageType: SSDPMessageType, headers: [String: String]) {
+    func handleSSDPMessage(_ messageType: SSDPMessageType, headers: [String: String]) {
         if let usnRawValue = headers["usn"] {
             let usnComponents = usnRawValue.components(separatedBy: "::")
             if usnComponents.count == 2,
@@ -142,7 +82,7 @@ public class SSDPDiscovery {
         }
     }
     
-    private func processData(_ data: Data) {
+    func processData(_ data: Data) {
         if let message = String(data: data, encoding: .utf8) {
             var httpMethodLine: String?
             var headers = [String: String]()
@@ -177,5 +117,3 @@ public class SSDPDiscovery {
         }
     }
 }
-
-

@@ -32,8 +32,11 @@ import os.log
 public class UPnPRegistry {
     public static let shared = UPnPRegistry()
     
-    private let discoveryEngine = SSDPDiscovery()
-    
+    // Use CocoaAsyncSocket discovery for SSDP, as the standard network framework doesn't support when
+    // multiple apps connect to the same multicast port (see https://developer.apple.com/forums/thread/716339)
+    //private let discoveryEngine = SSDPNetworkDiscovery()
+    private let discoveryEngine = SSDPCocoaAsyncSocketDiscovery()
+
     @MainActor
     public var devices = [UPnPDevice]()
     private var deviceAddedSubject = PassthroughSubject<UPnPDevice, Never>()
