@@ -230,10 +230,10 @@ public class UPnPService: Equatable, Identifiable, Hashable {
                let secondKeywordRange = timeoutString.range(of: "Second-"),
                let timeout = UInt64(timeoutString[secondKeywordRange.upperBound...]) {
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime(uptimeNanoseconds: timeout * 1000000)) { [weak self] in
-//                    guard let self else { return }
-//                    Task {
-//                        await self.renewSubscriptionToEvents()
-//                    }
+                    guard let self else { return }
+                    Task {
+                        await self.renewSubscriptionToEvents()
+                    }
                 }
                 
                 Logger.swiftUPnP.debug("Successfully subscribed for: \(timeout) seconds sid: \(subscriptionId)")
