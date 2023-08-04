@@ -46,8 +46,9 @@ struct UserAgentGenerator {
     
     //eg. CFNetwork/808.3
     private func CFNetworkVersion() -> String {
-        let dictionary = Bundle(identifier: "com.apple.CFNetwork")?.infoDictionary!
-        let version = dictionary?["CFBundleShortVersionString"] as! String
+        guard let dictionary = Bundle.main.infoDictionary else { return "CFNetwork/Unknown" }
+
+        let version = dictionary["CFBundleShortVersionString"] as? String ?? "Unknown"
         return "CFNetwork/\(version)"
     }
     
@@ -72,9 +73,9 @@ struct UserAgentGenerator {
     
     //eg. MyApp/1
     private func appNameAndVersion() -> String {
-        let dictionary = Bundle.main.infoDictionary!
-        let version = dictionary["CFBundleShortVersionString"] as! String
-        let name = dictionary["CFBundleName"] as! String
+        guard let dictionary = Bundle.main.infoDictionary else { return "Unknown/Unknown" }
+        let version = dictionary["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let name = dictionary["CFBundleName"] as? String ?? "Unknown"
         return "\(name)/\(version)"
     }
 }
