@@ -1,5 +1,9 @@
 # SwiftUPnP
-A Swift based UPnP implementation that draws inspiration from UPnAtom.
+SwiftUPnP is a Swift-based library that provides a comprehensive set of APIs for developers to implement the UPnP (Universal Plug and Play) and OpenHome protocols. With SwiftUPnP, developers can integrate UPnP and OpenHome support into their iOS, macOS, and tvOS apps, allowing users to discover and control audio devices on their network.
+
+SwiftUPnP implements the full set of UPnP and OpenHome services, including event processing. This means that developers can create real-time apps that can handle UPnP and OpenHome events, such as changes in the status of a device or the addition of a new device to the network. With SwiftUPnP, developers can implement event processing by subscribing to device services and receiving notifications when events occur.
+
+Overall, SwiftUPnP is a useful tool for developers who want to add UPnP and OpenHome support to their app. The library provides a straightforward and efficient way to create audio streaming and device control apps, allowing users to easily discover and control audio devices on their network.
 
 Key features that make this easy to use in a modern swift environment:
 - Concurrency and thread safety through async/await and @MainActor
