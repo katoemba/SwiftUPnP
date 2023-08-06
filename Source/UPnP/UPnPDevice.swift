@@ -33,6 +33,7 @@ internal struct UPnPDeviceDescription: Codable {
     let deviceId: String
     let deviceType: String
     let url: URL
+    let lastSeen: Date
 }
 
 public class UPnPDevice: Equatable, Identifiable, Hashable {
@@ -40,9 +41,10 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
     public let deviceId: String
     public let deviceType: String
     public let url: URL
+    public internal(set) var lastSeen: Date
     
     internal var upnpDeviceDescription: UPnPDeviceDescription {
-        UPnPDeviceDescription(uuid: uuid, deviceId: deviceId, deviceType: deviceType, url: url)
+        UPnPDeviceDescription(uuid: uuid, deviceId: deviceId, deviceType: deviceType, url: url, lastSeen: lastSeen)
     }
     
     public var data: Data? {
@@ -53,13 +55,20 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
     @MainActor
     public var services = [UPnPService]()
     @MainActor
-    public internal(set) var servicesLoaded: Bool
+    public internal(set) var servicesLoaded: Bool {
+        didSet {
+            if servicesLoaded {
+                lastSeen = Date()
+            }
+        }
+    }
     
-    internal init(uuid: String, deviceId: String, deviceType: String, url: URL) {
+    internal init(uuid: String, deviceId: String, deviceType: String, url: URL, lastSeen: Date) {
         self.uuid = uuid
         self.deviceId = deviceId
         self.deviceType = deviceType
         self.url = url
+        self.lastSeen = lastSeen
         self.servicesLoaded = false
     }
     
@@ -73,6 +82,7 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
         self.deviceId = upnpDeviceDescription.deviceId
         self.deviceType = upnpDeviceDescription.deviceType
         self.url = upnpDeviceDescription.url
+        self.lastSeen = upnpDeviceDescription.lastSeen
         self.servicesLoaded = false
     }
 
@@ -99,6 +109,7 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
     
     func loadRoot() async {
         var request = URLRequest(url: url)
+        request.cachePolicy = .reloadIgnoringLocalCacheData
         request.httpMethod = "GET"
         
         guard let (data, _) = try? await URLSession.shared.data(for: request) else {

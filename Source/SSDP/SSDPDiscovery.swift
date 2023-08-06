@@ -69,12 +69,12 @@ class SSDPDiscovery: NSObject {
                 if types.contains(ssdpType) {
                     if messageType == .unavailableNotification {
                         Task {
-                            await UPnPRegistry.shared.remove(UPnPDevice(uuid: uuid, deviceId: deviceId, deviceType: ssdpType, url: locationURL))
+                            await UPnPRegistry.shared.remove(UPnPDevice(uuid: uuid, deviceId: deviceId, deviceType: ssdpType, url: locationURL, lastSeen: Date()))
                         }
                     }
                     else {
                         Task {
-                            await UPnPRegistry.shared.add(UPnPDevice(uuid: uuid, deviceId: deviceId, deviceType: ssdpType, url: locationURL))
+                            await UPnPRegistry.shared.add(UPnPDevice(uuid: uuid, deviceId: deviceId, deviceType: ssdpType, url: locationURL, lastSeen: Date()))
                         }
                     }
                 }
