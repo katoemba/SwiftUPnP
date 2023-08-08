@@ -41,14 +41,14 @@ while let file = dirEnumerator.nextObject() as? String {
         let serviceName = file.replacingOccurrences(of: ".xml", with: "")
         print("Processing \(serviceName) in \(filePath)")
         
-        let url = URL(filePath: filePath)
+        let url = URL(fileURLWithPath: filePath)
         let data = try! Data(contentsOf: url)
         let decoder = XMLDecoder()
         decoder.shouldProcessNamespaces = true
         do {
             let scdp = try decoder.decode(scdp.self, from: data)
             if let serviceData = scdp.generateSource(serviceName: serviceName).data(using: .utf8) {
-                let targetURL = URL(filePath: "\(path)/\(serviceName).swift")
+                let targetURL = URL(fileURLWithPath: "\(path)/\(serviceName).swift")
                 try serviceData.write(to: targetURL)
             }
         }
