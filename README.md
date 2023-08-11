@@ -1,3 +1,7 @@
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fkatoemba%2FSwiftUPnP%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/katoemba/SwiftUPnP)
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fkatoemba%2FSwiftUPnP%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/katoemba/SwiftUPnP)
+[![Swift Package Manager](https://img.shields.io/badge/Swift_Package_Manager-compatible-green)](https://img.shields.io/badge/Swift_Package_Manager-compatible-green)
+
 # SwiftUPnP
 SwiftUPnP is a Swift-based library that provides a comprehensive set of APIs for developers to implement the UPnP (Universal Plug and Play) and OpenHome protocols. With SwiftUPnP, developers can integrate UPnP and OpenHome support into their iOS, macOS, and tvOS apps, allowing users to discover and control audio devices on their network.
 
@@ -15,8 +19,6 @@ Key features that make this easy to use in a modern swift environment:
 The minimum requirements for the SwiftUPnP library are:
 - iOS 14
 - macOS 11 Big Sur
-
-The minimum requirement for the UPnPCodeGenerator executable is macOS 13 Ventura.
 
 ## Device discovery
 SSDP discovery is done using CocoaAsyncSocket. There is also support for using the standard Apple Network framework, but this has a known issue when another app is also listening for UPnP devices. 
