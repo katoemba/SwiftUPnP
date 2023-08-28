@@ -126,6 +126,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     
     func loadScdp() async {
         var request = URLRequest(url: scpdUrl)
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         request.httpMethod = "GET"
         
         guard let (data, _) = try? await URLSession.shared.data(for: request) else {

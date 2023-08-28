@@ -109,7 +109,7 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
     
     func loadRoot() async {
         var request = URLRequest(url: url)
-        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         request.httpMethod = "GET"
         
         guard let (data, _) = try? await URLSession.shared.data(for: request) else {
