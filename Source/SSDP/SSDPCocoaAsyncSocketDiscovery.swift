@@ -36,9 +36,11 @@ class SSDPCocoaAsyncSocketDiscovery: SSDPDiscovery {
         guard multicastSocket == nil else { throw UPnPError.alreadyConnected }
         
         let multicastSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: DispatchQueue.main)
-        multicastSocket.setIPv6Enabled(false)
+        multicastSocket.setIPv4Enabled(true)
+        multicastSocket.setIPv6Enabled(true)
 
         try multicastSocket.enableReusePort(true)
+        try multicastSocket.enableBroadcast(true)
         try multicastSocket.bind(toPort: multicastUDPPort)
         try multicastSocket.joinMulticastGroup(multicastGroupAddress)
         try multicastSocket.beginReceiving()

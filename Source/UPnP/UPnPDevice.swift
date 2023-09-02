@@ -107,14 +107,14 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
         services.append(service)
     }
     
-    func loadRoot() async {
-        var request = URLRequest(url: url)
+    func loadRoot() async -> Bool {
+        var request = URLRequest(url: url, timeoutInterval: 3.0)
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         request.httpMethod = "GET"
         
         guard let (data, _) = try? await URLSession.shared.data(for: request) else {
             Logger.swiftUPnP.error("Error: couldn't load device description from \(self.url.absoluteString)")
-            return
+            return false
         }
         
         do {
@@ -122,6 +122,7 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
             decoder.shouldProcessNamespaces = false
             deviceDefinition = try decoder.decode(UPnPDeviceDefinition.self, from: data)
             Logger.swiftUPnP.debug("Device parsed \(self.deviceDefinition!.device.friendlyName) - \(self.deviceDefinition!.device.deviceType  )")
+            return true
         }
         catch DecodingError.dataCorrupted(let context) {
             Logger.swiftUPnP.error("\(context.debugDescription)")
@@ -134,6 +135,8 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
         } catch {
             Logger.swiftUPnP.error("Unknown error \(error.localizedDescription)")
         }
+        
+        return false
     }    
 }
 

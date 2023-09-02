@@ -125,7 +125,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     }
     
     func loadScdp() async {
-        var request = URLRequest(url: scpdUrl)
+        var request = URLRequest(url: scpdUrl, timeoutInterval: 3.0)
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         request.httpMethod = "GET"
         

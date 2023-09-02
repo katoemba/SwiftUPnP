@@ -26,13 +26,14 @@
 
 
 import Foundation
+import os.log
 
 public enum UPnPError: Error {
     case alreadyConnected
     case networkingError(String)
 }
 
-enum SSDPMessageType {
+enum SSDPMessageType: String {
     case searchResponse
     case availableNotification
     case updateNotification

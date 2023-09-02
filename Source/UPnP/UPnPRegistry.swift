@@ -38,7 +38,7 @@ public class UPnPRegistry {
     private let discoveryEngine = SSDPCocoaAsyncSocketDiscovery()
 
     @MainActor
-    public var devices = [UPnPDevice]()
+    private var devices = [UPnPDevice]()
     private var deviceAddedSubject = PassthroughSubject<UPnPDevice, Never>()
     // devices are always delivered on the main thread.
     public var deviceAdded: AnyPublisher<UPnPDevice, Never> {
@@ -137,12 +137,17 @@ public class UPnPRegistry {
     
     @MainActor
     public func add(_ device: UPnPDevice) {
-        guard devices.contains(where: { $0.id == device.id }) == false else { return }
+        guard devices.contains(where: { $0.id == device.id && $0.servicesLoaded == true }) == false else { return }
+        devices.removeAll(where:  { $0.id == device.id })
         devices.append(device)
         
         Logger.swiftUPnP.debug("device \(device.id)")
         Task {
-            await device.loadRoot()
+            guard await device.loadRoot() == true else {
+                Logger.swiftUPnP.error("Failed to load root on \(device.url)")
+                return
+            }
+            
             if let deviceServices = device.deviceDefinition?.device.serviceList?.service {
                 for deviceService in deviceServices {
                     guard let service = typedService(device: device, serviceUrn: deviceService.serviceType) else { continue }
