@@ -46,7 +46,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         case bodyAndResponse
     }
     
-    public static var defaultSubscriptionTimeout = 1800
+    public static var defaultSubscriptionTimeout = 600
     
     public let controlUrl: URL
     public let scpdUrl: URL
@@ -217,30 +217,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         request.setValue("upnp:event", forHTTPHeaderField: "NT")
         request.setValue("Second-\(Self.defaultSubscriptionTimeout)", forHTTPHeaderField: "TIMEOUT")
         
-        guard let (_, response) = try? await URLSession.shared.data(for: request),
-              (response as? HTTPURLResponse)?.statusCode ?? 0 >= 200,
-              (response as? HTTPURLResponse)?.statusCode ?? 0 <= 204 else {
-            await setSubcriptionStatus(.failed, subscriptionId: nil)
-            return
-        }
-        
-        if let typedHeaderFields = (response as? HTTPURLResponse)?.allHeaderFields as? [String: String] {
-            let headerFields = Dictionary(uniqueKeysWithValues: typedHeaderFields.map { key, value in (key.uppercased(), value) })
-            if let subscriptionId = headerFields["SID"],
-               let timeoutString = headerFields["TIMEOUT"],
-               let secondKeywordRange = timeoutString.range(of: "Second-"),
-               let timeout = UInt64(timeoutString[secondKeywordRange.upperBound...]) {
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime(uptimeNanoseconds: timeout * 1000000)) { [weak self] in
-                    guard let self else { return }
-                    Task {
-                        await self.renewSubscriptionToEvents()
-                    }
-                }
-                
-                Logger.swiftUPnP.debug("Successfully subscribed for: \(timeout) seconds sid: \(subscriptionId)")
-                await setSubcriptionStatus(.subscribed, subscriptionId: subscriptionId)
-            }
-        }
+        await subscribeOrRenew(request: request, type: "subscribed")
     }
     
     internal func renewSubscriptionToEvents() async {
@@ -252,6 +229,10 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         request.setValue("\(subscriptionId)", forHTTPHeaderField: "SID")
         request.setValue("Second-\(Self.defaultSubscriptionTimeout)", forHTTPHeaderField: "TIMEOUT")
         
+        await subscribeOrRenew(request: request, type: "renewed")
+    }
+    
+    private func subscribeOrRenew(request: URLRequest, type: String) async {
         guard let (_, response) = try? await URLSession.shared.data(for: request),
               (response as? HTTPURLResponse)?.statusCode ?? 0 >= 200,
               (response as? HTTPURLResponse)?.statusCode ?? 0 <= 204 else {
@@ -264,15 +245,15 @@ public class UPnPService: Equatable, Identifiable, Hashable {
             if let subscriptionId = headerFields["SID"],
                let timeoutString = headerFields["TIMEOUT"],
                let secondKeywordRange = timeoutString.range(of: "Second-"),
-               let timeout = UInt64(timeoutString[secondKeywordRange.upperBound...]) {
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime(uptimeNanoseconds: timeout * 1000000)) { [weak self] in
+               let timeout = Int(timeoutString[secondKeywordRange.upperBound...]) {
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now().advanced(by: .seconds(timeout - 10))) { [weak self] in
                     guard let self else { return }
                     Task {
                         await self.renewSubscriptionToEvents()
                     }
                 }
                 
-                Logger.swiftUPnP.debug("Successfully renewed for: \(timeout) seconds sid: \(subscriptionId)")
+                Logger.swiftUPnP.debug("Successfully \(type) for: \(timeout) seconds sid: \(subscriptionId)")
                 await self.setSubcriptionStatus(.subscribed, subscriptionId: subscriptionId)
             }
         }
