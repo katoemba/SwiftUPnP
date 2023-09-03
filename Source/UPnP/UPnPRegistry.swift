@@ -84,7 +84,7 @@ public class UPnPRegistry {
     
     public func startDiscovery() throws {
         Task {
-            await startHTTPServer()
+            await startHTTPServerIfNotRunning()
             try discoveryEngine.startDiscovery(forTypes: types)
             discoveryEngine.searchRequest()
         }
@@ -101,7 +101,13 @@ public class UPnPRegistry {
     }
     
     @MainActor
-    private func startHTTPServer() {
+    internal func startHTTPServerIfNotRunning() {
+        guard !httpServer.operating else { return }
+        startHTTPServer()
+    }
+        
+    @MainActor
+    internal func startHTTPServer() {
         do {
             try httpServer.start(httpServerPort)
             
@@ -122,10 +128,10 @@ public class UPnPRegistry {
     
     @MainActor
     private func stopHTTPServer() {
-        if httpServer.operating {
-            httpServer.stop()
-            eventCallbackUrl = nil
-        }
+        guard httpServer.operating else { return }
+
+        httpServer.stop()
+        eventCallbackUrl = nil
     }
     
     func callbackUrl() -> URL? {
@@ -358,4 +364,3 @@ public class UPnPRegistry {
         }
     }
 }
-

@@ -46,7 +46,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
         case bodyAndResponse
     }
     
-    public static var defaultSubscriptionTimeout = 600
+    public static var defaultSubscriptionTimeout = 120
     
     public let controlUrl: URL
     public let scpdUrl: URL
@@ -233,10 +233,19 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     }
     
     private func subscribeOrRenew(request: URLRequest, type: String) async {
-        guard let (_, response) = try? await URLSession.shared.data(for: request),
-              (response as? HTTPURLResponse)?.statusCode ?? 0 >= 200,
-              (response as? HTTPURLResponse)?.statusCode ?? 0 <= 204 else {
+        await UPnPRegistry.shared.startHTTPServerIfNotRunning()
+        
+        guard let (_, response) = try? await URLSession.shared.data(for: request) else {
+            Logger.swiftUPnP.error("\(type) failed request \(request.url!.description)")
             await self.setSubcriptionStatus(.failed, subscriptionId: nil)
+            return
+        }
+        
+        guard (response as? HTTPURLResponse)?.statusCode ?? 0 >= 200,
+              (response as? HTTPURLResponse)?.statusCode ?? 0 <= 204 else {
+            Logger.swiftUPnP.error("\(type) failed, status = \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+            await self.setSubcriptionStatus(.failed, subscriptionId: nil)
+            await self.subscribeToEvents()
             return
         }
         
@@ -246,6 +255,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
                let timeoutString = headerFields["TIMEOUT"],
                let secondKeywordRange = timeoutString.range(of: "Second-"),
                let timeout = Int(timeoutString[secondKeywordRange.upperBound...]) {
+                Logger.swiftUPnP.debug("Will renew sid: \(subscriptionId) at: \(Date(timeIntervalSinceNow: Double(timeout - 10)))")
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now().advanced(by: .seconds(timeout - 10))) { [weak self] in
                     guard let self else { return }
                     Task {
