@@ -1,11 +1,11 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "SwiftUPnP",
-    platforms: [.iOS(.v14), .macOS(.v11)],
+    platforms: [.iOS(.v14), .macOS(.v12), .watchOS(.v10)],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
@@ -26,7 +26,9 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "SwiftUPnP",
-            dependencies: ["XMLCoder", .product(name: "Swifter", package: "swifter"), "CocoaAsyncSocket"],
+            dependencies: [.product(name: "XMLCoder", package: "xmlcoder"),
+                           .product(name: "Swifter", package: "swifter"),
+                           .product(name: "CocoaAsyncSocket", package: "cocoaasyncsocket")],
             path: "Source"),
         .executableTarget(
             name: "UPnPCodeGenerator",
