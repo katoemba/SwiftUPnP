@@ -260,7 +260,7 @@ public struct DIDLDescription: Codable, DynamicNodeDecoding {
 public struct DIDLRes: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
     public init(importUri: URL? = nil,
                 protocolInfo: String? = nil,
-                size: UInt32? = nil, duration:
+                size: UInt64? = nil, duration:
                 String? = nil,
                 bitrate: UInt? = nil,
                 sampleFrequency: UInt? = nil,
@@ -301,7 +301,7 @@ public struct DIDLRes: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
     
     public let importUri: URL?
     public let protocolInfo: String?
-    public let size: UInt32?
+    public let size: UInt64?
     public let duration: String?
     public let bitrate: UInt?
     public let sampleFrequency: UInt?
