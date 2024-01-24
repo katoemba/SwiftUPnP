@@ -99,6 +99,7 @@ A full implementation of standard OpenHome services and state changes:
 - OpenHomeConfig
 - OpenHomeCredentials
 - OpenHomeInfo
+- OpenHomeOAuth
 - OpenHomePins
 - OpenHomePlaylist
 - OpenHomePlaylistManager

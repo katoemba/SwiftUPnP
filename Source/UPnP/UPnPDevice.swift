@@ -28,7 +28,7 @@ import Foundation
 import XMLCoder
 import os.log
 
-internal struct UPnPDeviceDescription: Codable {
+public struct UPnPDeviceDescription: Codable {
     let uuid: String
     let deviceId: String
     let deviceType: String
@@ -77,6 +77,21 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
         return UPnPDevice(upnpDeviceDescription: upnpDeviceDescription)
     }
     
+    @MainActor
+    /// Create a fully loaded UPnPDevice, but without adding it to a device registry. There is no subscription for state changes on the services on this device.
+    /// - Parameter upnpDeviceDescription: a description of the service
+    /// - Returns: a fully loaded device, or nil if it can't be found/loaded
+    public static func reanimateDeep(upnpDeviceDescription: UPnPDeviceDescription) async -> UPnPDevice? {
+        let device = UPnPDevice(upnpDeviceDescription: upnpDeviceDescription)
+        
+        if await device.loadServices() {
+            device.servicesLoaded = true
+            return device
+        }
+        
+        return nil
+    }
+    
     internal init(upnpDeviceDescription: UPnPDeviceDescription) {
         self.uuid = upnpDeviceDescription.uuid
         self.deviceId = upnpDeviceDescription.deviceId
@@ -105,6 +120,24 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
     @MainActor
     func add(_ service: UPnPService) {
         services.append(service)
+    }
+    
+    func loadServices() async -> Bool {
+        guard await loadRoot() == true else {
+            Logger.swiftUPnP.error("Failed to load root on \(self.url)")
+            return false
+        }
+            
+        if let deviceServices = deviceDefinition?.device.serviceList?.service {
+            for deviceService in deviceServices {
+                guard let service = UPnPRegistry.typedService(device: self, serviceUrn: deviceService.serviceType) else { continue }
+                
+                await service.loadScdp()
+                await add(service)
+            }
+        }
+        
+        return true
     }
     
     func loadRoot() async -> Bool {
@@ -204,5 +237,9 @@ extension UPnPDevice {
     
     public var openHomeReceiver1Service: OpenHomeReceiver1Service? {
         services.first(where: { $0.serviceType == "urn:av-openhome-org:service:Receiver:1" }) as? OpenHomeReceiver1Service
+    }
+    
+    public var openHomeOAuth1Service: OpenHomeOAuth1Service? {
+        services.first(where: { $0.serviceType == "urn:av-openhome-org:service:OAuth:1" }) as? OpenHomeOAuth1Service
     }
 }

@@ -58,9 +58,11 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     
     private var serviceDefinition: UPnPServiceDefinition?
     
-    private let eventPublisher: AnyPublisher<(String, Data), Never>
+    private let eventPublisher: AnyPublisher<(String, Data), Never>?
     internal lazy var subscribedEventPublisher: AnyPublisher<Data, Never> = {
-        eventPublisher.share()
+        guard let eventPublisher else { return Empty().eraseToAnyPublisher() }
+        
+        return eventPublisher.share()
             .filter { [weak self] in
                 self?.subscriptionId == $0.0
             }
@@ -97,7 +99,7 @@ public class UPnPService: Equatable, Identifiable, Hashable {
     }
     private var bag = Set<AnyCancellable>()
     
-    internal init(device: UPnPDevice, controlUrl: URL, scpdUrl: URL, eventUrl: URL?, serviceType: String, serviceId: String, eventPublisher: AnyPublisher<(String, Data), Never>, eventCallbackUrl: URL?) {
+    internal init(device: UPnPDevice, controlUrl: URL, scpdUrl: URL, eventUrl: URL?, serviceType: String, serviceId: String, eventPublisher: AnyPublisher<(String, Data), Never>? = nil, eventCallbackUrl: URL? = nil) {
         self.device = device
         self.controlUrl = controlUrl
         self.scpdUrl = scpdUrl

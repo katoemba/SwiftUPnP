@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "SwiftUPnP",
-    platforms: [.iOS(.v14), .macOS(.v12), .watchOS(.v10)],
+    platforms: [.iOS(.v14), .macOS(.v11), .watchOS(.v10)],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
@@ -20,6 +20,7 @@ let package = Package(
         .package(url: "https://github.com/CoreOffice/XMLCoder.git", from: "0.13.1"),
         .package(url: "https://github.com/httpswift/swifter", branch: "stable"),
         .package(url: "https://github.com/robbiehanson/CocoaAsyncSocket", branch: "master"),
+        .package(url: "https://github.com/WeTransfer/Mocker.git", .upToNextMajor(from: "3.0.0"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -32,7 +33,12 @@ let package = Package(
             path: "Source"),
         .executableTarget(
             name: "UPnPCodeGenerator",
-            dependencies: ["XMLCoder"],
+            dependencies: [.product(name: "XMLCoder", package: "xmlcoder")],
             path: "CodeGenerator"),
-    ]
+        .testTarget(
+            name: "SwiftUPnPTests",
+            dependencies: ["SwiftUPnP", 
+                           .product(name: "Mocker", package: "mocker")],
+            resources: [.process("Resources")])
+        ]
 )

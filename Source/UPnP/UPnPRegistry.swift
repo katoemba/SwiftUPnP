@@ -174,8 +174,12 @@ public class UPnPRegistry {
         devices.removeAll(where: { $0.id == device.id })
         deviceRemovedSubject.send(device)
     }
-
+    
     func typedService(device: UPnPDevice, serviceUrn: String) -> UPnPService? {
+        Self.typedService(device: device, serviceUrn: serviceUrn, eventPublisher: eventPublisher, eventCallbackUrl: eventCallbackUrl)
+    }
+
+    static func typedService(device: UPnPDevice, serviceUrn: String, eventPublisher: AnyPublisher<(String, Data), Never>? = nil, eventCallbackUrl: URL? = nil) -> UPnPService? {
         guard let deviceServices = device.deviceDefinition?.device.serviceList?.service,
               let deviceService = deviceServices.first(where: { $0.serviceType == serviceUrn }) else { return nil }
         
@@ -199,6 +203,15 @@ public class UPnPRegistry {
                                         serviceId: deviceService.serviceId,
                                         eventPublisher: eventPublisher,
                                         eventCallbackUrl: eventCallbackUrl)
+        case "urn:av-openhome-org:service:OAuth:1":
+            return OpenHomeOAuth1Service(device: device,
+                                         controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
+                                         scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
+                                         eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                         serviceType: deviceService.serviceType,
+                                         serviceId: deviceService.serviceId,
+                                         eventPublisher: eventPublisher,
+                                         eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Pins:1":
             return OpenHomePins1Service(device: device,
                                         controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
