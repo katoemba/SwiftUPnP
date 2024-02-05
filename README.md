@@ -52,6 +52,12 @@ Only devices are discovered, the available sources are loaded based on the descr
     }
 ```
 
+## Multicast permission
+To use device discovery on iOS, you need to request permission from Apple to make multicast requests. The page https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_networking_multicast contains a link where you can request this permission for your app. After being granted this permission, you need to add the following key to your app's .plist file:
+
+`<key>com.apple.developer.networking.multicast</key>`<br> 
+`<true/>`
+
 ## Actions
 UPnP actions and responses are strongly typed, no key-value pairs. This is done through Codable structs. All action calls are implemented as async functions.
 
