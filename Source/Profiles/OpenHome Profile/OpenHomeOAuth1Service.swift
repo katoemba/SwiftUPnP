@@ -487,4 +487,8 @@ extension OpenHomeOAuth1Service {
 			}
 			.eraseToAnyPublisher()
 	}
+
+	public var stateChangeStream: AsyncStream<State> {
+		stateSubject.stream
+	}
 }

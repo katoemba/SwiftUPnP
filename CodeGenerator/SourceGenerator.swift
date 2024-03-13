@@ -228,6 +228,8 @@ extension scdp {
         code += generateStateFunc(serviceName: serviceName)
         code += "\n"
         code += generateStateSubject()
+        code += "\n"
+        code += generateStateChangeStream()
         code += "}\n"
 
         return code
@@ -313,6 +315,16 @@ extension scdp {
         code += "\t\t\t\treturn try? self.state(xml: $0)\n"
         code += "\t\t\t}\n"
         code += "\t\t\t.eraseToAnyPublisher()\n"
+        code += "\t}\n"
+
+        return code
+    }
+    
+    func generateStateChangeStream() -> String {
+        var code = ""
+        
+        code += "\tpublic var stateChangeStream: AsyncStream<State> {\n"
+        code += "\t\tstateSubject.stream\n"
         code += "\t}\n"
 
         return code

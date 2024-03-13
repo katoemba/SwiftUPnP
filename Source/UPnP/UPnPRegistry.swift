@@ -44,10 +44,17 @@ public class UPnPRegistry {
     public var deviceAdded: AnyPublisher<UPnPDevice, Never> {
         deviceAddedSubject.receive(on: RunLoop.main).eraseToAnyPublisher()
     }
+    public var deviceAddedSequence: AsyncStream<UPnPDevice> {
+        deviceAdded.stream
+    }
+
     private var deviceRemovedSubject = PassthroughSubject<UPnPDevice, Never>()
     // devices are always delivered on the main thread.
     public var deviceRemoved: AnyPublisher<UPnPDevice, Never> {
         deviceRemovedSubject.receive(on: RunLoop.main).eraseToAnyPublisher()
+    }
+    public var deviceRemovedSequence: AsyncStream<UPnPDevice> {
+        deviceRemoved.stream
     }
     
     private var httpServer: HttpServer
@@ -87,7 +94,7 @@ public class UPnPRegistry {
             await startHTTPServerIfNotRunning()
             try discoveryEngine.startDiscovery(forTypes: types)
             discoveryEngine.searchRequest()
-        }
+        }    
     }
     
     public func stopDiscovery() {

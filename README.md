@@ -52,6 +52,34 @@ Only devices are discovered, the available sources are loaded based on the descr
     }
 ```
 
+Alternatively you can loop over an AsyncStream:
+
+```swift
+    private let openHomeRegistry = UPnPRegistry.shared
+
+    public init() {
+        Task {
+            for await device in openHomeRegistry.deviceAddedStream {
+                print("Detected device \(device.deviceDefinition.device.friendlyName) of type \(device.deviceType)")        
+            }
+        }
+    
+        Task {
+            for await device in openHomeRegistry.deviceRemovedStream {
+                print("Removed device \(device.deviceDefinition.device.friendlyName) of type \(device.deviceType)")        
+            }
+        }
+    }
+
+    public func startListening() {
+        try? openHomeRegistry.startDiscovery()
+    }
+    
+    public func stopListening() {
+        openHomeRegistry.stopDiscovery()
+    }
+```
+
 ## Actions
 UPnP actions and responses are strongly typed, no key-value pairs. This is done through Codable structs. All action calls are implemented as async functions.
 
@@ -75,6 +103,24 @@ To receive state changes, a small webserver will be run (Swifter).
                 print("Received volume change, volume = \($0.volume ?? -1)")
             }
             .store(in: &cancellables)
+            
+        Task {
+            await service.subscribeToEvents()
+        }
+    }
+```
+
+Alternatively you can loop over an AsyncStream:
+
+```swift
+    let device: UPnPDevice
+
+    if let service = device.openHomeVolume1Service {
+        Task {
+            for await volumeChange in service.stateChangeStream {
+                print("Received volume change, volume = \(volumeChange.volume ?? -1)")
+            }
+        }
             
         Task {
             await service.subscribeToEvents()
