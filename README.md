@@ -1,6 +1,7 @@
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fkatoemba%2FSwiftUPnP%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/katoemba/SwiftUPnP)
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fkatoemba%2FSwiftUPnP%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/katoemba/SwiftUPnP)
 [![Swift Package Manager](https://img.shields.io/badge/Swift_Package_Manager-compatible-green)](https://img.shields.io/badge/Swift_Package_Manager-compatible-green)
+[![bitrise CI](https://img.shields.io/bitrise/4821d650-38ae-4d26-b81d-bfca611d691b?token=86TPT9nYntoaEFj7c6blxw)](https://bitrise.io)
 
 # SwiftUPnP
 SwiftUPnP is a Swift-based library that provides a comprehensive set of APIs for developers to implement the UPnP (Universal Plug and Play) and OpenHome protocols. With SwiftUPnP, developers can integrate UPnP and OpenHome support into their iOS, macOS, and tvOS apps, allowing users to discover and control audio devices on their network.
@@ -79,6 +80,12 @@ Alternatively you can loop over an AsyncStream:
         openHomeRegistry.stopDiscovery()
     }
 ```
+
+## Multicast permission
+To use device discovery on iOS, you need to request permission from Apple to make multicast requests. The page https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_networking_multicast contains a link where you can request this permission for your app. After being granted this permission, you need to add the following key to your app's .plist file:
+
+`<key>com.apple.developer.networking.multicast</key>`<br> 
+`<true/>`
 
 ## Actions
 UPnP actions and responses are strongly typed, no key-value pairs. This is done through Codable structs. All action calls are implemented as async functions.
