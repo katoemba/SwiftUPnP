@@ -45,6 +45,10 @@ Only devices are discovered, the available sources are loaded based on the descr
     }
 
     public func startListening() {
+        // A list of device types can be passed to discover. The default devices types used when nothing is specified:
+        // urn:schemas-upnp-org:device:MediaServer:1
+        // urn:linn-co-uk:device:Source:1
+        // urn:av-openhome-org:device:Source:1
         try? openHomeRegistry.startDiscovery()
     }
     
@@ -73,6 +77,10 @@ Alternatively you can loop over an AsyncStream:
     }
 
     public func startListening() {
+        // A list of device types can be passed to discover. The default devices types used when nothing is specified:
+        // urn:schemas-upnp-org:device:MediaServer:1
+        // urn:linn-co-uk:device:Source:1
+        // urn:av-openhome-org:device:Source:1
         try? openHomeRegistry.startDiscovery()
     }
     

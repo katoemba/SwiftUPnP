@@ -65,14 +65,8 @@ public class UPnPRegistry {
     private lazy var eventPublisher: AnyPublisher<(String, Data), Never> = {
         eventSubject.share().eraseToAnyPublisher()
     }()
-    private let types: [String]
     
-    init(types: [String] = ["urn:schemas-upnp-org:device:MediaServer:1", "urn:linn-co-uk:device:Source:1", "urn:av-openhome-org:device:Source:1"],
-         httpServerPortRange: Range<UInt16> = 51000..<51099) {
-        self.types = types.filter { $0.contains(":device:") }
-        if self.types.count != types.count {
-            Logger.swiftUPnP.error("Only device types are discovered, service types will be discovered indirectly from the device description. Non-device types will be filtered.")
-        }
+    init(httpServerPortRange: Range<UInt16> = 51000..<51099) {
         httpServerPort = IPHelper.freePortFromRange(range: httpServerPortRange)
         httpServer = HttpServer()
         httpServer[eventCallBackPath] = { [weak self] request in
@@ -89,10 +83,16 @@ public class UPnPRegistry {
         }
     }
     
-    public func startDiscovery() throws {
+    public func startDiscovery(_ types: [String] = ["urn:schemas-upnp-org:device:MediaServer:1", "urn:linn-co-uk:device:Source:1", "urn:av-openhome-org:device:Source:1"]) throws {
+        let filteredTypes = types.filter { $0.contains(":device:") }
+        guard filteredTypes.count == types.count else {
+            Logger.swiftUPnP.error("Only device types are discovered, service types will be discovered indirectly from the device description. Non-device types will be filtered.")
+            return
+        }
+
         Task {
             await startHTTPServerIfNotRunning()
-            try discoveryEngine.startDiscovery(forTypes: types)
+            try discoveryEngine.startDiscovery(forTypes: filteredTypes)
             discoveryEngine.searchRequest()
         }    
     }
