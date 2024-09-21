@@ -55,7 +55,7 @@ public extension OpenHomePlaylist1Service {
         let metadata: String
     }
 
-    func readListDIDL(idList: String) async throws -> ReadListDIDLResponse {
+    func readListDIDL(idList: String, log: UPnPService.MessageLog = .none) async throws -> ReadListDIDLResponse {
         struct TrackList: Decodable {
             enum CodingKeys: String, CodingKey {
                 case entry = "Entry"
@@ -72,8 +72,8 @@ public extension OpenHomePlaylist1Service {
             let uri: String
             let metadata: String
         }
-        let readListResponse = try await readList(idList: idList)
-        
+        let readListResponse = try await readList(idList: idList, log: log)
+
         guard let trackListData = readListResponse.trackList.data(using: .utf8) else {
             throw ServiceParseError.noValidResponse
         }
