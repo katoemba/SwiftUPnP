@@ -18,8 +18,8 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/CoreOffice/XMLCoder.git", from: "0.13.1"),
-        .package(url: "https://github.com/httpswift/swifter", branch: "stable"),
-        .package(url: "https://github.com/robbiehanson/CocoaAsyncSocket", branch: "master"),
+        .package(url: "https://github.com/httpswift/swifter.git", branch: "stable"),
+        .package(url: "https://github.com/robbiehanson/CocoaAsyncSocket.git", branch: "master"),
         .package(url: "https://github.com/WeTransfer/Mocker.git", .upToNextMajor(from: "3.0.0"))
     ],
     targets: [
