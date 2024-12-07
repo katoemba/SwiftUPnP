@@ -190,193 +190,200 @@ public class UPnPRegistry {
         guard let deviceServices = device.deviceDefinition?.device.serviceList?.service,
               let deviceService = deviceServices.first(where: { $0.serviceType == serviceUrn }) else { return nil }
         
-        let baseURL = URL(string: "\(device.url.scheme!)://\(device.url.host!):\(device.url.port!)")
+        guard let scheme = device.url.scheme, let host = device.url.host, let port = device.url.port else { return nil }
+        
+        let baseURL = URL(string: "\(scheme)://\(host):\(port)")
+        
+        guard let controlUrl = URL(string: deviceService.controlURL, relativeTo: baseURL) else { return nil }
+        guard let scpdUrl = URL(string: deviceService.SCPDURL, relativeTo: baseURL) else { return nil }
+        let eventUrl = URL(string: deviceService.eventSubURL, relativeTo: baseURL)
+        
         switch serviceUrn {
         case "urn:av-openhome-org:service:Credentials:1":
             return OpenHomeCredentials1Service(device: device,
-                                               controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                               scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                               eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                               controlUrl: controlUrl,
+                                               scpdUrl: scpdUrl,
+                                               eventUrl: eventUrl,
                                                serviceType: deviceService.serviceType,
                                                serviceId: deviceService.serviceId,
                                                eventPublisher: eventPublisher,
                                                eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Info:1":
             return OpenHomeInfo1Service(device: device,
-                                        controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                        scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                        eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                        controlUrl: controlUrl,
+                                        scpdUrl: scpdUrl,
+                                        eventUrl: eventUrl,
                                         serviceType: deviceService.serviceType,
                                         serviceId: deviceService.serviceId,
                                         eventPublisher: eventPublisher,
                                         eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:OAuth:1":
             return OpenHomeOAuth1Service(device: device,
-                                         controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                         scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                         eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                         controlUrl: controlUrl,
+                                         scpdUrl: scpdUrl,
+                                         eventUrl: eventUrl,
                                          serviceType: deviceService.serviceType,
                                          serviceId: deviceService.serviceId,
                                          eventPublisher: eventPublisher,
                                          eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Pins:1":
             return OpenHomePins1Service(device: device,
-                                        controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                        scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                        eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                        controlUrl: controlUrl,
+                                        scpdUrl: scpdUrl,
+                                        eventUrl: eventUrl,
                                         serviceType: deviceService.serviceType,
                                         serviceId: deviceService.serviceId,
                                         eventPublisher: eventPublisher,
                                         eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Playlist:1":
             return OpenHomePlaylist1Service(device: device,
-                                            controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                            scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                            eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                            controlUrl: controlUrl,
+                                            scpdUrl: scpdUrl,
+                                            eventUrl: eventUrl,
                                             serviceType: deviceService.serviceType,
                                             serviceId: deviceService.serviceId,
                                             eventPublisher: eventPublisher,
                                             eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:PlaylistManager:1":
             return OpenHomePlaylistManager1Service(device: device,
-                                                   controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                                   scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                                   eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                                   controlUrl: controlUrl,
+                                                   scpdUrl: scpdUrl,
+                                                   eventUrl: eventUrl,
                                                    serviceType: deviceService.serviceType,
                                                    serviceId: deviceService.serviceId,
                                                    eventPublisher: eventPublisher,
                                                    eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Product:1":
             return OpenHomeProduct1Service(device: device,
-                                           controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                           scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                           eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                           controlUrl: controlUrl,
+                                           scpdUrl: scpdUrl,
+                                           eventUrl: eventUrl,
                                            serviceType: deviceService.serviceType,
                                            serviceId: deviceService.serviceId,
                                            eventPublisher: eventPublisher,
                                            eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Product:2":
             return OpenHomeProduct2Service(device: device,
-                                           controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                           scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                           eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                           controlUrl: controlUrl,
+                                           scpdUrl: scpdUrl,
+                                           eventUrl: eventUrl,
                                            serviceType: deviceService.serviceType,
                                            serviceId: deviceService.serviceId,
                                            eventPublisher: eventPublisher,
                                            eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Radio:1":
             return OpenHomeRadio1Service(device: device,
-                                         controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                         scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                         eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                         controlUrl: controlUrl,
+                                         scpdUrl: scpdUrl,
+                                         eventUrl: eventUrl,
                                          serviceType: deviceService.serviceType,
                                          serviceId: deviceService.serviceId,
                                          eventPublisher: eventPublisher,
                                          eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Time:1":
             return OpenHomeTime1Service(device: device,
-                                        controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                        scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                        eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                        controlUrl: controlUrl,
+                                        scpdUrl: scpdUrl,
+                                        eventUrl: eventUrl,
                                         serviceType: deviceService.serviceType,
                                         serviceId: deviceService.serviceId,
                                         eventPublisher: eventPublisher,
                                         eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Transport:1":
             return OpenHomeTransport1Service(device: device,
-                                             controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                             scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                             eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                             controlUrl: controlUrl,
+                                             scpdUrl: scpdUrl,
+                                             eventUrl: eventUrl,
                                              serviceType: deviceService.serviceType,
                                              serviceId: deviceService.serviceId,
                                              eventPublisher: eventPublisher,
                                              eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Volume:1":
             return OpenHomeVolume1Service(device: device,
-                                          controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                          scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                          eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                          controlUrl: controlUrl,
+                                          scpdUrl: scpdUrl,
+                                          eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
                                           eventPublisher: eventPublisher,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Volume:2":
             return OpenHomeVolume2Service(device: device,
-                                          controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                          scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                          eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                          controlUrl: controlUrl,
+                                          scpdUrl: scpdUrl,
+                                          eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
                                           eventPublisher: eventPublisher,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Config:1":
             return OpenHomeConfig1Service(device: device,
-                                          controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                          scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                          eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                          controlUrl: controlUrl,
+                                          scpdUrl: scpdUrl,
+                                          eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
                                           eventPublisher: eventPublisher,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Sender:1":
             return OpenHomeSender1Service(device: device,
-                                          controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                          scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                          eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                          controlUrl: controlUrl,
+                                          scpdUrl: scpdUrl,
+                                          eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
                                           eventPublisher: eventPublisher,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Receiver:1":
             return OpenHomeReceiver1Service(device: device,
-                                          controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                          scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                          eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                            controlUrl: controlUrl,
+                                            scpdUrl: scpdUrl,
+                                            eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
                                           eventPublisher: eventPublisher,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:schemas-upnp-org:service:ConnectionManager:1":
             return ConnectionManager1Service(device: device,
-                                             controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                             scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                             eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                             controlUrl: controlUrl,
+                                             scpdUrl: scpdUrl,
+                                             eventUrl: eventUrl,
                                              serviceType: deviceService.serviceType,
                                              serviceId: deviceService.serviceId,
                                              eventPublisher: eventPublisher,
                                              eventCallbackUrl: eventCallbackUrl)
         case "urn:schemas-upnp-org:service:ContentDirectory:1":
             return ContentDirectory1Service(device: device,
-                                            controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                            scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                            eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                            controlUrl: controlUrl,
+                                            scpdUrl: scpdUrl,
+                                            eventUrl: eventUrl,
                                             serviceType: deviceService.serviceType,
                                             serviceId: deviceService.serviceId,
                                             eventPublisher: eventPublisher,
                                             eventCallbackUrl: eventCallbackUrl)
         case "urn:schemas-upnp-org:service:AVTransport:1":
             return AVTransport1Service(device: device,
-                                       controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                       scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                       eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                       controlUrl: controlUrl,
+                                       scpdUrl: scpdUrl,
+                                       eventUrl: eventUrl,
                                        serviceType: deviceService.serviceType,
                                        serviceId: deviceService.serviceId,
                                        eventPublisher: eventPublisher,
                                        eventCallbackUrl: eventCallbackUrl)
         case "urn:schemas-upnp-org:service:RenderingControl:1":
             return RenderingControl1Service(device: device,
-                                            controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                                            scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                                            eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                                            controlUrl: controlUrl,
+                                            scpdUrl: scpdUrl,
+                                            eventUrl: eventUrl,
                                             serviceType: deviceService.serviceType,
                                             serviceId: deviceService.serviceId,
                                             eventPublisher: eventPublisher,
                                             eventCallbackUrl: eventCallbackUrl)
         default:
             return UPnPService(device: device,
-                               controlUrl: URL(string: deviceService.controlURL, relativeTo: baseURL)!,
-                               scpdUrl: URL(string: deviceService.SCPDURL, relativeTo: baseURL)!,
-                               eventUrl: URL(string: deviceService.eventSubURL, relativeTo: baseURL),
+                               controlUrl: controlUrl,
+                               scpdUrl: scpdUrl,
+                               eventUrl: eventUrl,
                                serviceType: deviceService.serviceType,
                                serviceId: deviceService.serviceId,
                                eventPublisher: eventPublisher,
