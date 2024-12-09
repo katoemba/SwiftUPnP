@@ -185,17 +185,17 @@ public class UPnPRegistry {
     func typedService(device: UPnPDevice, serviceUrn: String) -> UPnPService? {
         Self.typedService(device: device, serviceUrn: serviceUrn, eventPublisher: eventPublisher, eventCallbackUrl: eventCallbackUrl)
     }
-
+    
     static func typedService(device: UPnPDevice, serviceUrn: String, eventPublisher: AnyPublisher<(String, Data), Never>? = nil, eventCallbackUrl: URL? = nil) -> UPnPService? {
         guard let deviceServices = device.deviceDefinition?.device.serviceList?.service,
-              let deviceService = deviceServices.first(where: { $0.serviceType == serviceUrn }) else { return nil }
+              let deviceService = deviceServices.first(where: { $0.serviceType == serviceUrn }),
+              let scheme = device.url.scheme,
+              let host = device.url.host,
+              let port = device.url.port,
+              let baseURL = URL(string: "\(scheme)://\(host):\(port)"),
+              let controlUrl = URL(string: deviceService.controlURL, relativeTo: baseURL),
+              let scpdUrl = URL(string: deviceService.SCPDURL, relativeTo: baseURL) else { return nil }
         
-        guard let scheme = device.url.scheme, let host = device.url.host, let port = device.url.port else { return nil }
-        
-        let baseURL = URL(string: "\(scheme)://\(host):\(port)")
-        
-        guard let controlUrl = URL(string: deviceService.controlURL, relativeTo: baseURL) else { return nil }
-        guard let scpdUrl = URL(string: deviceService.SCPDURL, relativeTo: baseURL) else { return nil }
         let eventUrl = URL(string: deviceService.eventSubURL, relativeTo: baseURL)
         
         switch serviceUrn {
