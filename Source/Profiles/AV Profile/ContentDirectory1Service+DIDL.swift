@@ -384,13 +384,14 @@ public struct SearchDIDLResponse {
     public let updateID: UInt32
 }
 public extension ContentDirectory1Service {
-    func browseDIDL(objectID: String, browseFlag: A_ARG_TYPE_BrowseFlagEnum, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String) async throws -> BrowseDIDLResponse {
+    func browseDIDL(objectID: String, browseFlag: A_ARG_TYPE_BrowseFlagEnum, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String, log: UPnPService.MessageLog = .none) async throws -> BrowseDIDLResponse {
         let response = try await browse(objectID: objectID,
                                         browseFlag: browseFlag,
                                         filter: filter,
                                         startingIndex: startingIndex,
                                         requestedCount: requestedCount,
-                                        sortCriteria: sortCriteria)
+                                        sortCriteria: sortCriteria,
+                                        log: log)
         
         let decoder = XMLDecoder()
         decoder.shouldProcessNamespaces = false
@@ -407,13 +408,14 @@ public extension ContentDirectory1Service {
                                   updateID: response.updateID)
     }
     
-    func searchDIDL(containerID: String, searchCriteria: String, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String) async throws -> SearchDIDLResponse {
+    func searchDIDL(containerID: String, searchCriteria: String, filter: String, startingIndex: UInt32, requestedCount: UInt32, sortCriteria: String, log: UPnPService.MessageLog = .none) async throws -> SearchDIDLResponse {
         let response = try await search(containerID: containerID,
                                         searchCriteria: searchCriteria,
                                         filter: filter,
                                         startingIndex: startingIndex,
                                         requestedCount: requestedCount,
-                                        sortCriteria: sortCriteria)
+                                        sortCriteria: sortCriteria,
+                                        log: log)
         
         let decoder = XMLDecoder()
         decoder.shouldProcessNamespaces = false
