@@ -44,7 +44,11 @@ public class UPnPRegistry {
     public var deviceAdded: AnyPublisher<UPnPDevice, Never> {
         deviceAddedSubject.receive(on: RunLoop.main).eraseToAnyPublisher()
     }
+    // Keep this one for backwards compatiblity
     public var deviceAddedSequence: AsyncStream<UPnPDevice> {
+        deviceAdded.stream
+    }
+    public var deviceAddedStream: AsyncStream<UPnPDevice> {
         deviceAdded.stream
     }
 
@@ -53,7 +57,11 @@ public class UPnPRegistry {
     public var deviceRemoved: AnyPublisher<UPnPDevice, Never> {
         deviceRemovedSubject.receive(on: RunLoop.main).eraseToAnyPublisher()
     }
+    // Keep this one for backwards compatiblity
     public var deviceRemovedSequence: AsyncStream<UPnPDevice> {
+        deviceRemoved.stream
+    }
+    public var deviceRemovedStream: AsyncStream<UPnPDevice> {
         deviceRemoved.stream
     }
     
