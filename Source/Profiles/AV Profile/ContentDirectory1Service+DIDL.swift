@@ -132,6 +132,7 @@ public struct DIDLItem: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
                 desc: [DIDLDescription],
                 `class`: String,
                 title: String,
+                creator: String? = nil,
                 orig: String? = nil,
                 date: String? = nil,
                 album: String? = nil,
@@ -147,6 +148,7 @@ public struct DIDLItem: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
         self.desc = desc
         self.`class` = `class`
         self.title = title
+        self.creator = creator
         self.orig = orig
         self.date = date
         self.album = album
@@ -177,6 +179,7 @@ public struct DIDLItem: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
 
         case `class` = "upnp:class"
         case title = "dc:title"
+        case creator = "dc:creator"
         case orig = "upnp:orig"
         case date = "dc:date"
         case album = "upnp:album"
@@ -201,6 +204,7 @@ public struct DIDLItem: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
 
     public let `class`: String
     public let title: String
+    public let creator: String?
     public let orig: String?
     public let date: String?
     public let album: String?
