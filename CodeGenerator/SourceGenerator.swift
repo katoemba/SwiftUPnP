@@ -49,7 +49,7 @@ extension scdp {
         code += "import XMLCoder\n"
         code += "import os.log\n"
         code += "\n"
-        code += "public class \(serviceName): UPnPService {\n"
+        code += "public class \(serviceName): UPnPService, @unchecked Sendable {\n"
         code += "\tstruct Envelope<T: Codable>: Codable {\n"
         code += "\t\tenum CodingKeys: String, CodingKey {\n"
         code += "\t\t\tcase body = \"s:Body\"\n"
@@ -155,7 +155,7 @@ extension scdp {
         if action.hasOutput {
             code += "\t\tlet result: Envelope<Body> = try await postWithResult(action: \"\(action.name)\", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)"
             for argument in action.inArguments {
-                code += ", \(argument.name.uncapitalizeFirstLetter()): \(argument.name.uncapitalizeFirstLetter())"
+                code += ", \(argument.name.uncapitalizeFirstLetter(quoteRepeat: false)): \(argument.name.uncapitalizeFirstLetter())"
             }
             code += "))), log: log)\n"
             code += "\n"
@@ -165,7 +165,7 @@ extension scdp {
         else {
             code += "\t\ttry await post(action: \"\(action.name)\", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType)"
             for argument in action.inArguments {
-                code += ", \(argument.name.uncapitalizeFirstLetter()): \(argument.name.uncapitalizeFirstLetter())"
+                code += ", \(argument.name.uncapitalizeFirstLetter(quoteRepeat: false)): \(argument.name.uncapitalizeFirstLetter())"
             }
             code += "))), log: log)\n"
         }
@@ -382,9 +382,9 @@ extension scdp {
 }
 
 extension String {
-    func uncapitalizeFirstLetter() -> String {
+    func uncapitalizeFirstLetter(quoteRepeat: Bool = true) -> String {
         let variable = prefix(1).lowercased() + dropFirst()
-        if variable == "repeat" {
+        if quoteRepeat == true && variable == "repeat" {
             return "`repeat`"
         }
         return variable

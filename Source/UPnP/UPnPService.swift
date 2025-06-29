@@ -29,7 +29,7 @@ import XMLCoder
 import Combine
 import os.log
 
-public class UPnPService: Equatable, Identifiable, Hashable {
+public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable {
     public enum SubscriptionStatus {
         case unsubscribed
         case subscribing

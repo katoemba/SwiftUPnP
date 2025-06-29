@@ -27,7 +27,7 @@ import Combine
 import XMLCoder
 import os.log
 
-public class OpenHomePlaylistManager1Service: UPnPService {
+public class OpenHomePlaylistManager1Service: UPnPService, @unchecked Sendable {
 	struct Envelope<T: Codable>: Codable {
 		enum CodingKeys: String, CodingKey {
 			case body = "s:Body"

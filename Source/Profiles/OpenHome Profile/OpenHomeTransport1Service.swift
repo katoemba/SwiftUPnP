@@ -27,7 +27,7 @@ import Combine
 import XMLCoder
 import os.log
 
-public class OpenHomeTransport1Service: UPnPService {
+public class OpenHomeTransport1Service: UPnPService, @unchecked Sendable {
 	struct Envelope<T: Codable>: Codable {
 		enum CodingKeys: String, CodingKey {
 			case body = "s:Body"
@@ -173,7 +173,7 @@ public class OpenHomeTransport1Service: UPnPService {
 
 			var action: SoapAction
 		}
-		try await post(action: "SetRepeat", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), `repeat`: `repeat`))), log: log)
+		try await post(action: "SetRepeat", envelope: Envelope(body: Body(action: SoapAction(urn: Attribute(serviceType), repeat: `repeat`))), log: log)
 	}
 
 	public func setShuffle(shuffle: Bool, log: UPnPService.MessageLog = .none) async throws {
