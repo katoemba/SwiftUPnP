@@ -79,6 +79,15 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
     
     @MainActor
     /// Create a fully loaded UPnPDevice, but without adding it to a device registry. There is no subscription for state changes on the services on this device.
+    /// - Parameter data: a data representation of the description of the service
+    /// - Returns: a fully loaded device, or nil if it can't be found/loaded
+    public static func reanimateDeep(from data: Data) async -> UPnPDevice? {
+        guard let upnpDeviceDescription = try? JSONDecoder().decode(UPnPDeviceDescription.self, from: data) else { return nil }
+        return await reanimateDeep(upnpDeviceDescription: upnpDeviceDescription)
+    }
+
+    @MainActor
+    /// Create a fully loaded UPnPDevice, but without adding it to a device registry. There is no subscription for state changes on the services on this device.
     /// - Parameter upnpDeviceDescription: a description of the service
     /// - Returns: a fully loaded device, or nil if it can't be found/loaded
     public static func reanimateDeep(upnpDeviceDescription: UPnPDeviceDescription) async -> UPnPDevice? {
