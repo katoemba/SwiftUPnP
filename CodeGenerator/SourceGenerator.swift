@@ -45,7 +45,7 @@ extension scdp {
         var code = ""
         
         code += "import Foundation\n"
-        code += "import Combine\n"
+        //code += "import Combine\n"
         code += "import XMLCoder\n"
         code += "import os.log\n"
         code += "\n"
@@ -227,8 +227,8 @@ extension scdp {
         code += "\n"
         code += generateStateFunc(serviceName: serviceName)
         code += "\n"
-        code += generateStateSubject()
-        code += "\n"
+//        code += generateStateSubject()
+//        code += "\n"
         code += generateStateChangeStream()
         code += "}\n"
 
@@ -238,7 +238,7 @@ extension scdp {
     func generateStateStruct(serviceName: String) -> String {
         var code = ""
         
-        code += "\tpublic struct State: Codable {\n"
+        code += "\tpublic struct State: Codable, Sendable {\n"
         code += "\t\tenum CodingKeys: String, CodingKey {\n"
         for stateVariable in serviceStateTable.stateVariable.filter({ $0.sendEvents.lowercased() == "yes" }) {
             if stateVariable.dataType == .bin_base64 {

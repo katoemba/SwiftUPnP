@@ -26,9 +26,9 @@
 
 
 import Foundation
-import Combine
+@preconcurrency import Combine
 
-internal extension Publisher where Failure == Never {
+internal extension Publisher where Output: Sendable, Failure == Never {
     var stream: AsyncStream<Output> {
         AsyncStream { continuation in
             let cancellable = self.sink { completion in
@@ -43,7 +43,7 @@ internal extension Publisher where Failure == Never {
     }
 }
 
-internal extension Publisher where Failure: Error {
+internal extension Publisher where Output: Sendable, Failure: Error {
     var stream: AsyncThrowingStream<Output, Error> {
         AsyncThrowingStream<Output, Error> { continuation in
             let cancellable = self.sink { completion in
@@ -60,5 +60,19 @@ internal extension Publisher where Failure: Error {
                 cancellable.cancel()
             }
         }
+    }
+}
+
+actor DataEventBus {
+    private var continuation: AsyncStream<Data>.Continuation?
+
+    lazy var stream = AsyncStream<Data> { continuation = $0 }
+
+    func emit(_ msg: Data) {
+        continuation?.yield(msg)
+    }
+
+    func finish() {
+        continuation?.finish()
     }
 }

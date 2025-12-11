@@ -36,7 +36,7 @@ public class OpenHomeReceiver1Service: UPnPService, @unchecked Sendable {
 		var body: T
 	}
 
-	public enum TransportStateEnum: String, Codable {
+	public enum TransportStateEnum: String, Codable, Sendable {
 		case buffering = "Buffering"
 		case playing = "Playing"
 		case stopped = "Stopped"
@@ -216,7 +216,7 @@ public class OpenHomeReceiver1Service: UPnPService, @unchecked Sendable {
 
 // Event parser
 extension OpenHomeReceiver1Service {
-	public struct State: Codable {
+	public struct State: Codable, Sendable {
 		enum CodingKeys: String, CodingKey {
 			case uri = "Uri"
 			case metadata = "Metadata"

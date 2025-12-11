@@ -25,11 +25,11 @@
 //
 
 import Foundation
-import Combine
+@preconcurrency import Combine
 import Swifter
 import os.log
 
-public class UPnPRegistry {
+public actor UPnPRegistry {
     public static let shared = UPnPRegistry()
     
     // Use CocoaAsyncSocket discovery for SSDP, as the standard network framework doesn't support when
@@ -37,7 +37,6 @@ public class UPnPRegistry {
     //private let discoveryEngine = SSDPNetworkDiscovery()
     private let discoveryEngine = SSDPCocoaAsyncSocketDiscovery()
 
-    @MainActor
     private var devices = [UPnPDevice]()
     private var deviceAddedSubject = PassthroughSubject<UPnPDevice, Never>()
     // devices are always delivered on the main thread.
@@ -108,29 +107,27 @@ public class UPnPRegistry {
     public func stopDiscovery() {
         Task {
             await stopHTTPServer()
-            await MainActor.run {
-                devices.removeAll(keepingCapacity: false)
-            }
+            devices.removeAll(keepingCapacity: false)
         }
         discoveryEngine.stopDiscovery()
     }
     
-    @MainActor
     internal func startHTTPServerIfNotRunning() {
         guard !httpServer.operating else { return }
         startHTTPServer()
     }
         
-    @MainActor
     internal func startHTTPServer() {
         do {
             try httpServer.start(httpServerPort)
             
             eventCallbackUrl = callbackUrl()
             if let eventCallbackUrl = eventCallbackUrl {
-                for device in devices {
-                    for service in device.services {
-                        service.eventCallbackUrl = eventCallbackUrl
+                Task {
+                    for device in devices {
+                        for service in await device.services {
+                            service.eventCallbackUrl = eventCallbackUrl
+                        }
                     }
                 }
             }
@@ -141,7 +138,6 @@ public class UPnPRegistry {
         }
     }
     
-    @MainActor
     private func stopHTTPServer() {
         guard httpServer.operating else { return }
 
@@ -156,8 +152,7 @@ public class UPnPRegistry {
         return nil
     }
     
-    @MainActor
-    public func add(_ device: UPnPDevice) {
+    public func add(_ device: UPnPDevice) async {
         guard devices.contains(where: { $0.id == device.id && $0.servicesLoaded == true }) == false else { return }
         devices.removeAll(where:  { $0.id == device.id })
         devices.append(device)
@@ -169,7 +164,7 @@ public class UPnPRegistry {
                 return
             }
             
-            if let deviceServices = device.deviceDefinition?.device.serviceList?.service {
+            if let deviceServices = await device.deviceDefinition?.device.serviceList?.service {
                 for deviceService in deviceServices {
                     guard let service = typedService(device: device, serviceUrn: deviceService.serviceType) else { continue }
                     
@@ -183,7 +178,6 @@ public class UPnPRegistry {
         }
     }
 
-    @MainActor
     func remove(_ device: UPnPDevice) {
         guard let device = devices.first(where: { $0.id == device.id }) else { return }
         devices.removeAll(where: { $0.id == device.id })
@@ -191,7 +185,7 @@ public class UPnPRegistry {
     }
     
     func typedService(device: UPnPDevice, serviceUrn: String) -> UPnPService? {
-        Self.typedService(device: device, serviceUrn: serviceUrn, eventPublisher: eventPublisher, eventCallbackUrl: eventCallbackUrl)
+        Self.typedService(device: device, serviceUrn: serviceUrn, eventStream: eventStream, eventCallbackUrl: eventCallbackUrl)
     }
     
     static func typedService(device: UPnPDevice, serviceUrn: String, eventPublisher: AnyPublisher<(String, Data), Never>? = nil, eventCallbackUrl: URL? = nil) -> UPnPService? {
@@ -214,7 +208,7 @@ public class UPnPRegistry {
                                                eventUrl: eventUrl,
                                                serviceType: deviceService.serviceType,
                                                serviceId: deviceService.serviceId,
-                                               eventPublisher: eventPublisher,
+                                               eventStream: deviceService.eventStream,
                                                eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Info:1":
             return OpenHomeInfo1Service(device: device,
@@ -223,7 +217,7 @@ public class UPnPRegistry {
                                         eventUrl: eventUrl,
                                         serviceType: deviceService.serviceType,
                                         serviceId: deviceService.serviceId,
-                                        eventPublisher: eventPublisher,
+                                        eventStream: eventStream,
                                         eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:OAuth:1":
             return OpenHomeOAuth1Service(device: device,
@@ -232,7 +226,7 @@ public class UPnPRegistry {
                                          eventUrl: eventUrl,
                                          serviceType: deviceService.serviceType,
                                          serviceId: deviceService.serviceId,
-                                         eventPublisher: eventPublisher,
+                                         eventStream: eventStream,
                                          eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Pins:1":
             return OpenHomePins1Service(device: device,
@@ -241,7 +235,7 @@ public class UPnPRegistry {
                                         eventUrl: eventUrl,
                                         serviceType: deviceService.serviceType,
                                         serviceId: deviceService.serviceId,
-                                        eventPublisher: eventPublisher,
+                                        eventStream: eventStream,
                                         eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Playlist:1":
             return OpenHomePlaylist1Service(device: device,
@@ -250,7 +244,7 @@ public class UPnPRegistry {
                                             eventUrl: eventUrl,
                                             serviceType: deviceService.serviceType,
                                             serviceId: deviceService.serviceId,
-                                            eventPublisher: eventPublisher,
+                                            eventStream: eventStream,
                                             eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:PlaylistManager:1":
             return OpenHomePlaylistManager1Service(device: device,
@@ -259,7 +253,7 @@ public class UPnPRegistry {
                                                    eventUrl: eventUrl,
                                                    serviceType: deviceService.serviceType,
                                                    serviceId: deviceService.serviceId,
-                                                   eventPublisher: eventPublisher,
+                                                   eventStream: eventStream,
                                                    eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Product:1":
             return OpenHomeProduct1Service(device: device,
@@ -268,7 +262,7 @@ public class UPnPRegistry {
                                            eventUrl: eventUrl,
                                            serviceType: deviceService.serviceType,
                                            serviceId: deviceService.serviceId,
-                                           eventPublisher: eventPublisher,
+                                           eventStream: eventStream,
                                            eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Product:2":
             return OpenHomeProduct2Service(device: device,
@@ -277,7 +271,7 @@ public class UPnPRegistry {
                                            eventUrl: eventUrl,
                                            serviceType: deviceService.serviceType,
                                            serviceId: deviceService.serviceId,
-                                           eventPublisher: eventPublisher,
+                                           eventStream: eventStream,
                                            eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Radio:1":
             return OpenHomeRadio1Service(device: device,
@@ -286,7 +280,7 @@ public class UPnPRegistry {
                                          eventUrl: eventUrl,
                                          serviceType: deviceService.serviceType,
                                          serviceId: deviceService.serviceId,
-                                         eventPublisher: eventPublisher,
+                                         eventStream: eventStream,
                                          eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Time:1":
             return OpenHomeTime1Service(device: device,
@@ -295,7 +289,7 @@ public class UPnPRegistry {
                                         eventUrl: eventUrl,
                                         serviceType: deviceService.serviceType,
                                         serviceId: deviceService.serviceId,
-                                        eventPublisher: eventPublisher,
+                                        eventStream: eventStream,
                                         eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Transport:1":
             return OpenHomeTransport1Service(device: device,
@@ -304,7 +298,7 @@ public class UPnPRegistry {
                                              eventUrl: eventUrl,
                                              serviceType: deviceService.serviceType,
                                              serviceId: deviceService.serviceId,
-                                             eventPublisher: eventPublisher,
+                                             eventStream: eventStream,
                                              eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Volume:1":
             return OpenHomeVolume1Service(device: device,
@@ -313,7 +307,7 @@ public class UPnPRegistry {
                                           eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
-                                          eventPublisher: eventPublisher,
+                                          eventStream: eventStream,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Volume:2":
             return OpenHomeVolume2Service(device: device,
@@ -322,7 +316,7 @@ public class UPnPRegistry {
                                           eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
-                                          eventPublisher: eventPublisher,
+                                          eventStream: eventStream,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Config:1":
             return OpenHomeConfig1Service(device: device,
@@ -331,7 +325,7 @@ public class UPnPRegistry {
                                           eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
-                                          eventPublisher: eventPublisher,
+                                          eventStream: eventStream,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Sender:1":
             return OpenHomeSender1Service(device: device,
@@ -340,7 +334,7 @@ public class UPnPRegistry {
                                           eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
-                                          eventPublisher: eventPublisher,
+                                          eventStream: eventStream,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:av-openhome-org:service:Receiver:1":
             return OpenHomeReceiver1Service(device: device,
@@ -349,7 +343,7 @@ public class UPnPRegistry {
                                             eventUrl: eventUrl,
                                           serviceType: deviceService.serviceType,
                                           serviceId: deviceService.serviceId,
-                                          eventPublisher: eventPublisher,
+                                          eventStream: eventStream,
                                           eventCallbackUrl: eventCallbackUrl)
         case "urn:schemas-upnp-org:service:ConnectionManager:1":
             return ConnectionManager1Service(device: device,
@@ -358,7 +352,7 @@ public class UPnPRegistry {
                                              eventUrl: eventUrl,
                                              serviceType: deviceService.serviceType,
                                              serviceId: deviceService.serviceId,
-                                             eventPublisher: eventPublisher,
+                                             eventStream: eventStream,
                                              eventCallbackUrl: eventCallbackUrl)
         case "urn:schemas-upnp-org:service:ContentDirectory:1":
             return ContentDirectory1Service(device: device,
@@ -367,7 +361,7 @@ public class UPnPRegistry {
                                             eventUrl: eventUrl,
                                             serviceType: deviceService.serviceType,
                                             serviceId: deviceService.serviceId,
-                                            eventPublisher: eventPublisher,
+                                            eventStream: eventStream,
                                             eventCallbackUrl: eventCallbackUrl)
         case "urn:schemas-upnp-org:service:AVTransport:1":
             return AVTransport1Service(device: device,
@@ -376,7 +370,7 @@ public class UPnPRegistry {
                                        eventUrl: eventUrl,
                                        serviceType: deviceService.serviceType,
                                        serviceId: deviceService.serviceId,
-                                       eventPublisher: eventPublisher,
+                                       eventStream: eventStream,
                                        eventCallbackUrl: eventCallbackUrl)
         case "urn:schemas-upnp-org:service:RenderingControl:1":
             return RenderingControl1Service(device: device,
@@ -385,7 +379,7 @@ public class UPnPRegistry {
                                             eventUrl: eventUrl,
                                             serviceType: deviceService.serviceType,
                                             serviceId: deviceService.serviceId,
-                                            eventPublisher: eventPublisher,
+                                            eventStream: eventStream,
                                             eventCallbackUrl: eventCallbackUrl)
         default:
             return UPnPService(device: device,
@@ -394,7 +388,7 @@ public class UPnPRegistry {
                                eventUrl: eventUrl,
                                serviceType: deviceService.serviceType,
                                serviceId: deviceService.serviceId,
-                               eventPublisher: eventPublisher,
+                               eventStream: eventStream,
                                eventCallbackUrl: eventCallbackUrl)
         }
     }

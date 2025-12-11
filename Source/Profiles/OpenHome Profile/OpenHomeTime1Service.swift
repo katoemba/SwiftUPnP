@@ -82,7 +82,7 @@ public class OpenHomeTime1Service: UPnPService, @unchecked Sendable {
 
 // Event parser
 extension OpenHomeTime1Service {
-	public struct State: Codable {
+	public struct State: Codable, Sendable {
 		enum CodingKeys: String, CodingKey {
 			case trackCount = "TrackCount"
 			case duration = "Duration"

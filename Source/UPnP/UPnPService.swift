@@ -29,7 +29,7 @@ import XMLCoder
 import Combine
 import os.log
 
-public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable {
+public actor UPnPService: Equatable, Identifiable, Hashable {
     public enum SubscriptionStatus {
         case unsubscribed
         case subscribing
@@ -46,8 +46,9 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
         case bodyAndResponse
     }
     
-    public static var defaultSubscriptionTimeout = 120
+    public static let defaultSubscriptionTimeout = 120
     
+    public nonisolated let id: String
     public let controlUrl: URL
     public let scpdUrl: URL
     public let eventUrl: URL?
@@ -58,40 +59,25 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
     
     private var serviceDefinition: UPnPServiceDefinition?
     
-    private let eventPublisher: AnyPublisher<(String, Data), Never>?
-    internal lazy var subscribedEventPublisher: AnyPublisher<Data, Never> = {
-        guard let eventPublisher else { return Empty().eraseToAnyPublisher() }
-        
-        return eventPublisher.share()
-            .filter { [weak self] in
-                self?.subscriptionId == $0.0
-            }
-            .map {
-                $0.1
-            }
-            .eraseToAnyPublisher()
-    }()
+    private let eventStream: AsyncStream<(String, Data)>?
+    private let eventDataBus = DataEventBus()
+    internal let publishedEventStream: AsyncStream<Data>?
     private var subscriptionId: String?
-    @MainActor
     public private(set) var subscriptionStatus = SubscriptionStatus.unsubscribed
-    @MainActor
     private func setSubcriptionStatus(_ subscriptionStatus: SubscriptionStatus, subscriptionId: String?) {
         self.subscriptionStatus = subscriptionStatus
         self.subscriptionId = subscriptionId
     }
-    @MainActor
     private func startSubcribing() -> Bool {
         guard subscriptionStatus == .unsubscribed || subscriptionStatus == .failed else { return false }
         subscriptionStatus = .subscribing
         return true
     }
-    @MainActor
     private func startRenewing() -> String? {
         guard subscriptionStatus == .subscribed, subscriptionId != nil else { return nil }
         subscriptionStatus = .renewing
         return subscriptionId
     }
-    @MainActor
     private func startUnubcribing() -> Bool {
         guard subscriptionStatus == .subscribed, subscriptionId != nil else { return false }
         subscriptionStatus = .unsubscribing
@@ -99,26 +85,36 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
     }
     private var bag = Set<AnyCancellable>()
     
-    internal init(device: UPnPDevice, controlUrl: URL, scpdUrl: URL, eventUrl: URL?, serviceType: String, serviceId: String, eventPublisher: AnyPublisher<(String, Data), Never>? = nil, eventCallbackUrl: URL? = nil) {
+    internal init(device: UPnPDevice, controlUrl: URL, scpdUrl: URL, eventUrl: URL?, serviceType: String, serviceId: String, eventStream: AsyncStream<(String, Data)>? = nil, eventCallbackUrl: URL? = nil) async {
         self.device = device
         self.controlUrl = controlUrl
         self.scpdUrl = scpdUrl
         self.eventUrl = eventUrl
         self.serviceType = serviceType
         self.serviceId = serviceId
-        self.eventPublisher = eventPublisher
+        self.eventStream = eventStream
         self.eventCallbackUrl = eventCallbackUrl
+        id = "\(device.uuid)::\(serviceId)"
+        
+        if let eventStream = self.eventStream {
+            publishedEventStream = await eventDataBus.stream
+            
+            for await item in eventStream {
+                if item.0 == serviceId {
+                    await eventDataBus.emit(item.1)
+                }
+            }
+        }
+        else {
+            publishedEventStream = nil
+        }
     }
     
-    public static func == (lhs: UPnPService, rhs: UPnPService) -> Bool {
+    public static nonisolated func == (lhs: UPnPService, rhs: UPnPService) -> Bool {
         lhs.id == rhs.id
     }
     
-    public var id: String {
-        "\(device.uuid)::\(serviceId)"
-    }
-    
-    public func hash(into hasher: inout Hasher) {
+    public nonisolated func hash(into hasher: inout Hasher) {
         id.hash(into: &hasher)
     }
     
@@ -210,7 +206,7 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
     
     public func subscribeToEvents() async {
         guard let eventUrl = eventUrl, let eventCallbackUrl = eventCallbackUrl else { return }
-        guard await startSubcribing() else { return }
+        guard startSubcribing() else { return }
         
         var request = URLRequest(url: eventUrl)
         request.httpMethod = "SUBSCRIBE"
@@ -223,7 +219,7 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
     }
     
     internal func renewSubscriptionToEvents() async {
-        guard let eventUrl = eventUrl, let subscriptionId = await startRenewing() else { return }
+        guard let eventUrl = eventUrl, let subscriptionId = startRenewing() else { return }
         
         var request = URLRequest(url: eventUrl)
         request.httpMethod = "SUBSCRIBE"
@@ -239,14 +235,14 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
         
         guard let (_, response) = try? await URLSession.shared.data(for: request) else {
             Logger.swiftUPnP.error("\(type) failed request \(request.url!.description)")
-            await self.setSubcriptionStatus(.failed, subscriptionId: nil)
+            self.setSubcriptionStatus(.failed, subscriptionId: nil)
             return
         }
         
         guard (response as? HTTPURLResponse)?.statusCode ?? 0 >= 200,
               (response as? HTTPURLResponse)?.statusCode ?? 0 <= 204 else {
             Logger.swiftUPnP.error("\(type) failed, status = \((response as? HTTPURLResponse)?.statusCode ?? -1)")
-            await self.setSubcriptionStatus(.failed, subscriptionId: nil)
+            self.setSubcriptionStatus(.failed, subscriptionId: nil)
             await self.subscribeToEvents()
             return
         }
@@ -266,13 +262,13 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
                 }
                 
                 Logger.swiftUPnP.debug("Successfully \(type) for: \(timeout) seconds sid: \(subscriptionId)")
-                await self.setSubcriptionStatus(.subscribed, subscriptionId: subscriptionId)
+                self.setSubcriptionStatus(.subscribed, subscriptionId: subscriptionId)
             }
         }
     }
     
     public func unsubscribeFromEvents() async {
-        guard let eventUrl = eventUrl, await startUnubcribing() else { return }
+        guard let eventUrl = eventUrl, startUnubcribing() else { return }
         
         var request = URLRequest(url: eventUrl)
         request.httpMethod = "UNSUBSCRIBE"
@@ -283,11 +279,11 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
               (response as? HTTPURLResponse)?.statusCode ?? 0 >= 200,
               (response as? HTTPURLResponse)?.statusCode ?? 0 <= 204 else {
             Logger.swiftUPnP.error("Unsuccessfully unsubscribed sid: \(self.subscriptionId ?? "-")")
-            await self.setSubcriptionStatus(.failed, subscriptionId: nil)
+            self.setSubcriptionStatus(.failed, subscriptionId: nil)
             return
         }
         
         Logger.swiftUPnP.debug("Successfully unsubscribed sid: \(self.subscriptionId ?? "-")")
-        await self.setSubcriptionStatus(.unsubscribed, subscriptionId: nil)
+        self.setSubcriptionStatus(.unsubscribed, subscriptionId: nil)
     }
 }

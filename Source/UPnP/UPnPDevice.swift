@@ -36,7 +36,7 @@ public struct UPnPDeviceDescription: Codable {
     let lastSeen: Date
 }
 
-public class UPnPDevice: Equatable, Identifiable, Hashable {
+public class UPnPDevice: Equatable, Identifiable, Hashable, @unchecked Sendable {
     public let uuid: String
     public let deviceId: String
     public let deviceType: String
@@ -52,9 +52,7 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
     }
     
     public var deviceDefinition: UPnPDeviceDefinition?
-    @MainActor
     public var services = [UPnPService]()
-    @MainActor
     public internal(set) var servicesLoaded: Bool {
         didSet {
             if servicesLoaded {
@@ -77,7 +75,6 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
         return UPnPDevice(upnpDeviceDescription: upnpDeviceDescription)
     }
     
-    @MainActor
     /// Create a fully loaded UPnPDevice, but without adding it to a device registry. There is no subscription for state changes on the services on this device.
     /// - Parameter data: a data representation of the description of the service
     /// - Returns: a fully loaded device, or nil if it can't be found/loaded
@@ -86,7 +83,6 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
         return await reanimateDeep(upnpDeviceDescription: upnpDeviceDescription)
     }
 
-    @MainActor
     /// Create a fully loaded UPnPDevice, but without adding it to a device registry. There is no subscription for state changes on the services on this device.
     /// - Parameter upnpDeviceDescription: a description of the service
     /// - Returns: a fully loaded device, or nil if it can't be found/loaded
@@ -179,7 +175,7 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
         }
         
         return false
-    }    
+    }
 }
 
 @MainActor

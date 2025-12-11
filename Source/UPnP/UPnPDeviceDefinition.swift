@@ -26,17 +26,17 @@
 import Foundation
 import XMLCoder
 
-public struct UPnPDeviceDefinition: Decodable {
+public struct UPnPDeviceDefinition: Decodable, Sendable {
     public let specVersion: SpecVersion
     public let device: Device
 }
 
-public struct SpecVersion: Decodable {
+public struct SpecVersion: Decodable, Sendable {
     public let major: Int
     public let minor: Int
 }
 
-public struct Device: Decodable {
+public struct Device: Decodable, Sendable {
     public let deviceType: String
     public let friendlyName: String
     public let manufacturer: String
@@ -55,11 +55,11 @@ public struct Device: Decodable {
     public let presentationURL: String?
 }
 
-public struct IconList: Decodable {
+public struct IconList: Decodable, Sendable {
     public let icon: [Icon]
 }
 
-public struct Icon: Decodable {
+public struct Icon: Decodable, Sendable {
     public let mimetype: String
     public let width: Int
     public let height: Int
@@ -67,11 +67,11 @@ public struct Icon: Decodable {
     public let url: String
 }
 
-public struct ServiceList: Decodable {
+public struct ServiceList: Decodable, Sendable {
     public let service: [Service]
 }
 
-public struct Service: Decodable {
+public struct Service: Decodable, Sendable {
     public let serviceType: String
     public let serviceId: String
     public let SCPDURL: String

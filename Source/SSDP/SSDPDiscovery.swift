@@ -40,7 +40,7 @@ enum SSDPMessageType: String {
     case unavailableNotification
 }
 
-class SSDPDiscovery: NSObject {
+class SSDPDiscovery: NSObject, Sendable {
     let multicastGroupAddress = "239.255.255.250"
     let multicastUDPPort: UInt16 = 1900
     var types = [String]()

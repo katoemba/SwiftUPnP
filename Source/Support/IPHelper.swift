@@ -131,7 +131,7 @@ struct IPHelper {
 }
 
 extension Logger {
-    private static var subsystem = Bundle.main.bundleIdentifier!
+    private static let subsystem = Bundle.main.bundleIdentifier!
 
     /// Logs the view cycles like viewDidLoad.
     static let swiftUPnP = Logger(subsystem: subsystem, category: "SwiftUPnP")
