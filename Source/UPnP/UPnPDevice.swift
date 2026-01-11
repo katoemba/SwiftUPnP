@@ -29,11 +29,11 @@ import XMLCoder
 import os.log
 
 public struct UPnPDeviceDescription: Codable, Sendable {
-    let uuid: String
-    let deviceId: String
-    let deviceType: String
-    let url: URL
-    let lastSeen: Date
+    public let uuid: String
+    public let deviceId: String
+    public let deviceType: String
+    public let url: URL
+    public let lastSeen: Date
     
     public init(uuid: String, deviceId: String, deviceType: String, url: URL, lastSeen: Date) {
         self.uuid = uuid
