@@ -28,12 +28,20 @@ import Foundation
 import XMLCoder
 import os.log
 
-public struct UPnPDeviceDescription: Codable {
+public struct UPnPDeviceDescription: Codable, Sendable {
     let uuid: String
     let deviceId: String
     let deviceType: String
     let url: URL
     let lastSeen: Date
+    
+    public init(uuid: String, deviceId: String, deviceType: String, url: URL, lastSeen: Date) {
+        self.uuid = uuid
+        self.deviceId = deviceId
+        self.deviceType = deviceType
+        self.url = url
+        self.lastSeen = lastSeen
+    }
 }
 
 public class UPnPDevice: Equatable, Identifiable, Hashable {
