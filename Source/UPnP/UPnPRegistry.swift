@@ -68,9 +68,9 @@ public class UPnPRegistry {
     private var httpServer: HttpServer
     private let httpServerPort: UInt16
     private let eventCallBackPath = "/Event/\(UUID().uuidString.replacingOccurrences(of: "-", with: ""))"
-    private var eventCallbackUrl: URL?
+    internal var eventCallbackUrl: URL?
     private let eventSubject = PassthroughSubject<(String, Data), Never>()
-    private lazy var eventPublisher: AnyPublisher<(String, Data), Never> = {
+    internal lazy var eventPublisher: AnyPublisher<(String, Data), Never> = {
         eventSubject.share().eraseToAnyPublisher()
     }()
     
@@ -89,6 +89,8 @@ public class UPnPRegistry {
             
             return HttpResponse.ok(.text(""))
         }
+        
+        eventCallbackUrl = callbackUrl()
     }
     
     public func startDiscovery(_ types: [String] = ["urn:schemas-upnp-org:device:MediaServer:1", "urn:linn-co-uk:device:Source:1", "urn:av-openhome-org:device:Source:1"]) throws {

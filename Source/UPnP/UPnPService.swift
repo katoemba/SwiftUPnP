@@ -162,6 +162,12 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
         request.setValue("text/xml; charset=\"utf-8\"", forHTTPHeaderField: "Content-Type")
         request.setValue("\"\(serviceType)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
         
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.timeoutInterval = 5
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.setValue("0", forHTTPHeaderField: "Expires")
+
         let encoder = XMLEncoder()
         let httpBody = try encoder.encode(envelope,
                                           withRootKey: "s:Envelope",
@@ -183,6 +189,12 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
         request.httpMethod = "POST"
         request.setValue("text/xml; charset=\"utf-8\"", forHTTPHeaderField: "Content-Type")
         request.setValue("\"\(serviceType)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
+        
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.timeoutInterval = 5
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.setValue("0", forHTTPHeaderField: "Expires")
         
         let encoder = XMLEncoder()
         let httpBody = try encoder.encode(envelope,
