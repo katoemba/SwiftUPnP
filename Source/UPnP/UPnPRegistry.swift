@@ -171,13 +171,11 @@ public class UPnPRegistry {
                 return
             }
             
-            if let deviceServices = device.deviceDefinition?.device.serviceList?.service {
-                for deviceService in deviceServices {
-                    guard let service = typedService(device: device, serviceUrn: deviceService.serviceType) else { continue }
-                    
-                    await service.loadScdp()
-                    device.add(service)
-                }
+            for deviceService in device.deviceDefinition?.device.allServices ?? [] {
+                guard let service = typedService(device: device, deviceService: deviceService) else { continue }
+
+                await service.loadScdp()
+                device.add(service)
             }
             
             device.servicesLoaded = true
@@ -192,14 +190,19 @@ public class UPnPRegistry {
         deviceRemovedSubject.send(device)
     }
     
-    func typedService(device: UPnPDevice, serviceUrn: String) -> UPnPService? {
-        Self.typedService(device: device, serviceUrn: serviceUrn, eventPublisher: eventPublisher, eventCallbackUrl: eventCallbackUrl)
+    func typedService(device: UPnPDevice, deviceService: Service) -> UPnPService? {
+        Self.typedService(device: device, deviceService: deviceService, eventPublisher: eventPublisher, eventCallbackUrl: eventCallbackUrl)
     }
-    
+
     static func typedService(device: UPnPDevice, serviceUrn: String, eventPublisher: AnyPublisher<(String, Data), Never>? = nil, eventCallbackUrl: URL? = nil) -> UPnPService? {
-        guard let deviceServices = device.deviceDefinition?.device.serviceList?.service,
-              let deviceService = deviceServices.first(where: { $0.serviceType == serviceUrn }),
-              let scheme = device.url.scheme,
+        // Search the root device and all embedded devices; devices like Sonos keep their
+        // MediaRenderer services on an embedded device.
+        guard let deviceService = device.deviceDefinition?.device.allServices.first(where: { $0.serviceType == serviceUrn }) else { return nil }
+        return typedService(device: device, deviceService: deviceService, eventPublisher: eventPublisher, eventCallbackUrl: eventCallbackUrl)
+    }
+
+    static func typedService(device: UPnPDevice, deviceService: Service, eventPublisher: AnyPublisher<(String, Data), Never>? = nil, eventCallbackUrl: URL? = nil) -> UPnPService? {
+        guard let scheme = device.url.scheme,
               let host = device.url.host,
               let port = device.url.port,
               let baseURL = URL(string: "\(scheme)://\(host):\(port)"),
@@ -207,8 +210,8 @@ public class UPnPRegistry {
               let scpdUrl = URL(string: deviceService.SCPDURL, relativeTo: baseURL) else { return nil }
         
         let eventUrl = URL(string: deviceService.eventSubURL, relativeTo: baseURL)
-        
-        switch serviceUrn {
+
+        switch deviceService.serviceType {
         case "urn:av-openhome-org:service:Credentials:1":
             return OpenHomeCredentials1Service(device: device,
                                                controlUrl: controlUrl,

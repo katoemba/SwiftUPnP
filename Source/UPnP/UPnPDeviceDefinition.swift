@@ -51,8 +51,26 @@ public struct Device: Decodable {
 
     public let iconList: IconList?
     public let serviceList: ServiceList?
-    
+    public let deviceList: DeviceList?
+
     public let presentationURL: String?
+
+    /// Vendor extension used by Sonos: the room a player is assigned to. Nil for other devices.
+    public let roomName: String?
+}
+
+public extension Device {
+    /// The services of this device and of all its embedded devices, recursively. Some devices
+    /// (e.g. Sonos) expose AVTransport/RenderingControl on an embedded MediaRenderer device
+    /// rather than on the root device.
+    var allServices: [Service] {
+        (serviceList?.service ?? []) + (deviceList?.device ?? []).flatMap { $0.allServices }
+    }
+
+    /// This device plus all its embedded devices, recursively.
+    var allDevices: [Device] {
+        [self] + (deviceList?.device ?? []).flatMap { $0.allDevices }
+    }
 }
 
 public struct IconList: Decodable {
@@ -69,6 +87,10 @@ public struct Icon: Decodable {
 
 public struct ServiceList: Decodable {
     public let service: [Service]
+}
+
+public struct DeviceList: Decodable {
+    public let device: [Device]
 }
 
 public struct Service: Decodable {

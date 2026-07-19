@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <device>
+    <deviceType>urn:schemas-upnp-org:device:ZonePlayer:1</deviceType>
+    <friendlyName>192.168.1.136 - Sonos One</friendlyName>
+    <manufacturer>Sonos, Inc.</manufacturer>
+    <manufacturerURL>http://www.sonos.com</manufacturerURL>
+    <modelNumber>S13</modelNumber>
+    <modelDescription>Sonos One</modelDescription>
+    <modelName>Sonos One</modelName>
+    <modelURL>http://www.sonos.com/store/products/</modelURL>
+    <UDN>uuid:RINCON_38420B809AA001400</UDN>
+    <roomName>Sala de estar</roomName>
+    <displayName>One</displayName>
+    <iconList>
+      <icon>
+        <id>0</id>
+        <mimetype>image/png</mimetype>
+        <width>48</width>
+        <height>48</height>
+        <depth>24</depth>
+        <url>/img/icon-S13.png</url>
+      </icon>
+    </iconList>
+    <serviceList>
+      <service>
+        <serviceType>urn:schemas-upnp-org:service:AlarmClock:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:AlarmClock</serviceId>
+        <controlURL>/AlarmClock/Control</controlURL>
+        <eventSubURL>/AlarmClock/Event</eventSubURL>
+        <SCPDURL>/xml/AlarmClock1.xml</SCPDURL>
+      </service>
+      <service>
+        <serviceType>urn:upnp-org:serviceId:ZoneGroupTopology:1</serviceType>
+        <serviceId>urn:upnp-org:serviceId:ZoneGroupTopology</serviceId>
+        <controlURL>/ZoneGroupTopology/Control</controlURL>
+        <eventSubURL>/ZoneGroupTopology/Event</eventSubURL>
+        <SCPDURL>/xml/ZoneGroupTopology1.xml</SCPDURL>
+      </service>
+    </serviceList>
+    <deviceList>
+      <device>
+        <deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
+        <friendlyName>192.168.1.136 - Sonos One Media Server</friendlyName>
+        <manufacturer>Sonos, Inc.</manufacturer>
+        <modelNumber>S13</modelNumber>
+        <modelDescription>Sonos One Media Server</modelDescription>
+        <modelName>Sonos One</modelName>
+        <UDN>uuid:RINCON_38420B809AA001400_MS</UDN>
+        <serviceList>
+          <service>
+            <serviceType>urn:schemas-upnp-org:service:ContentDirectory:1</serviceType>
+            <serviceId>urn:upnp-org:serviceId:ContentDirectory</serviceId>
+            <controlURL>/MediaServer/ContentDirectory/Control</controlURL>
+            <eventSubURL>/MediaServer/ContentDirectory/Event</eventSubURL>
+            <SCPDURL>/xml/ContentDirectory1.xml</SCPDURL>
+          </service>
+          <service>
+            <serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>
+            <serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>
+            <controlURL>/MediaServer/ConnectionManager/Control</controlURL>
+            <eventSubURL>/MediaServer/ConnectionManager/Event</eventSubURL>
+            <SCPDURL>/xml/ConnectionManager1.xml</SCPDURL>
+          </service>
+        </serviceList>
+      </device>
+      <device>
+        <deviceType>urn:schemas-upnp-org:device:MediaRenderer:1</deviceType>
+        <friendlyName>Sala de estar - Sonos One Media Renderer</friendlyName>
+        <manufacturer>Sonos, Inc.</manufacturer>
+        <modelNumber>S13</modelNumber>
+        <modelDescription>Sonos One Media Renderer</modelDescription>
+        <modelName>Sonos One</modelName>
+        <UDN>uuid:RINCON_38420B809AA001400_MR</UDN>
+        <serviceList>
+          <service>
+            <serviceType>urn:schemas-upnp-org:service:RenderingControl:1</serviceType>
+            <serviceId>urn:upnp-org:serviceId:RenderingControl</serviceId>
+            <controlURL>/MediaRenderer/RenderingControl/Control</controlURL>
+            <eventSubURL>/MediaRenderer/RenderingControl/Event</eventSubURL>
+            <SCPDURL>/xml/RenderingControl1.xml</SCPDURL>
+          </service>
+          <service>
+            <serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>
+            <serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>
+            <controlURL>/MediaRenderer/ConnectionManager/Control</controlURL>
+            <eventSubURL>/MediaRenderer/ConnectionManager/Event</eventSubURL>
+            <SCPDURL>/xml/ConnectionManager1.xml</SCPDURL>
+          </service>
+          <service>
+            <serviceType>urn:schemas-upnp-org:service:AVTransport:1</serviceType>
+            <serviceId>urn:upnp-org:serviceId:AVTransport</serviceId>
+            <controlURL>/MediaRenderer/AVTransport/Control</controlURL>
+            <eventSubURL>/MediaRenderer/AVTransport/Event</eventSubURL>
+            <SCPDURL>/xml/AVTransport1.xml</SCPDURL>
+          </service>
+          <service>
+            <serviceType>urn:sonos-com:service:Queue:1</serviceType>
+            <serviceId>urn:sonos-com:serviceId:Queue</serviceId>
+            <controlURL>/MediaRenderer/Queue/Control</controlURL>
+            <eventSubURL>/MediaRenderer/Queue/Event</eventSubURL>
+            <SCPDURL>/xml/Queue1.xml</SCPDURL>
+          </service>
+          <service>
+            <serviceType>urn:schemas-upnp-org:service:GroupRenderingControl:1</serviceType>
+            <serviceId>urn:upnp-org:serviceId:GroupRenderingControl</serviceId>
+            <controlURL>/MediaRenderer/GroupRenderingControl/Control</controlURL>
+            <eventSubURL>/MediaRenderer/GroupRenderingControl/Event</eventSubURL>
+            <SCPDURL>/xml/GroupRenderingControl1.xml</SCPDURL>
+          </service>
+        </serviceList>
+      </device>
+    </deviceList>
+  </device>
+</root>
