@@ -105,6 +105,7 @@ final class HTTPServer {
         set { lock.lock(); _handler = newValue; lock.unlock() }
     }
 
+    private let requestTimeout: TimeInterval
     private let queue = DispatchQueue(label: "com.katoemba.swiftupnp.httpserver")
     private let lock = NSLock()
     /// Listeners that were told to stop but haven't reported doing so. Their port is still taken,
@@ -116,6 +117,12 @@ final class HTTPServer {
     private var startContinuation: CheckedContinuation<Void, Error>?
     private var _isRunning = false
     private var _port: UInt16 = 0
+
+    /// - Parameter requestTimeout: how long a request that has started arriving may take to arrive
+    ///   in full before its connection is given up on.
+    init(requestTimeout: TimeInterval = 30) {
+        self.requestTimeout = requestTimeout
+    }
 
     deinit {
         stop()
@@ -304,7 +311,7 @@ final class HTTPServer {
 
     private func accept(_ connection: NWConnection) {
         let handler = self.handler ?? { _ in .internalServerError("No handler is listening") }
-        let httpConnection = HTTPConnection(connection: connection, handler: handler) { [weak self] finished in
+        let httpConnection = HTTPConnection(connection: connection, handler: handler, requestTimeout: requestTimeout) { [weak self] finished in
             guard let self else { return }
             self.lock.lock()
             self.connections.removeValue(forKey: ObjectIdentifier(finished))
@@ -346,15 +353,16 @@ private final class Once {
 /// One connection from a device, which may carry more than one request: devices keep the connection
 /// open between notifications.
 private final class HTTPConnection {
-    /// A device that opens a connection and then says nothing holds on to it forever otherwise. Only
-    /// applied to a request that has started arriving, so a quiet keep-alive connection that a
-    /// device intends to reuse is left alone.
-    private static let requestTimeout = 30.0
     private static let maximumHeaderSize = 64 * 1024
     private static let maximumBodySize = 8 * 1024 * 1024
 
     private let connection: NWConnection
     private let handler: HTTPServer.Handler
+    /// How long a request that has started arriving may take to arrive in full. A device that opens
+    /// a connection and then says nothing holds on to it forever otherwise. Only applied while a
+    /// request is half received, so a quiet keep-alive connection that a device intends to reuse is
+    /// left alone.
+    private let requestTimeout: TimeInterval
     private let onClose: (HTTPConnection) -> Void
     /// Its own queue, so that a slow handler for one device doesn't hold up the events of another.
     private let queue = DispatchQueue(label: "com.katoemba.swiftupnp.httpconnection")
@@ -362,9 +370,10 @@ private final class HTTPConnection {
     private var timeout: DispatchWorkItem?
     private var closed = false
 
-    init(connection: NWConnection, handler: @escaping HTTPServer.Handler, onClose: @escaping (HTTPConnection) -> Void) {
+    init(connection: NWConnection, handler: @escaping HTTPServer.Handler, requestTimeout: TimeInterval, onClose: @escaping (HTTPConnection) -> Void) {
         self.connection = connection
         self.handler = handler
+        self.requestTimeout = requestTimeout
         self.onClose = onClose
     }
 
@@ -422,7 +431,15 @@ private final class HTTPConnection {
                     send(.status(413, "Payload Too Large"), keepAlive: false)
                     return false
                 }
-                startTimeout()
+                // Every handled request leaves an empty buffer that parses as incomplete, which is
+                // an idle connection waiting for the next notification rather than a request that
+                // stopped halfway: only the latter is given a deadline.
+                if buffer.isEmpty {
+                    cancelTimeout()
+                }
+                else {
+                    startTimeout()
+                }
                 return true
 
             case let .malformed(reason):
@@ -474,7 +491,7 @@ private final class HTTPConnection {
             self.close()
         }
         timeout = work
-        queue.asyncAfter(deadline: .now() + Self.requestTimeout, execute: work)
+        queue.asyncAfter(deadline: .now() + requestTimeout, execute: work)
     }
 
     private func cancelTimeout() {

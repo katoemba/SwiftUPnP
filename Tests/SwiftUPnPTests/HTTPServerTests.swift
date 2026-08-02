@@ -8,6 +8,7 @@
 //
 
 import XCTest
+import Network
 import Mocker
 @testable import SwiftUPnP
 
@@ -390,6 +391,135 @@ final class HTTPServerTests: XCTestCase {
         }
         catch {
             XCTAssertFalse(second.isRunning)
+        }
+    }
+
+    /// Devices hold their connection open between state changes, and those are minutes apart. A
+    /// connection that is closed while a device still believes in it costs the notification it sends
+    /// next, which is a state change that never arrives.
+    func testAConnectionIsHeldOpenBetweenNotifications() async throws {
+        server = HTTPServer(requestTimeout: 0.5)
+        let received = Received()
+        server.handler = { request in
+            received.append(request)
+            return .ok()
+        }
+        try await server.start(port: port)
+
+        let device = RawClient(port: port)
+        try await device.connect()
+        defer { device.close() }
+
+        try await device.send(notification(sid: "uuid:one"))
+        let first = try await device.receiveResponseLine()
+        XCTAssertEqual(first, "HTTP/1.1 200 OK")
+
+        // Longer than a request is given to arrive, which may not be held against a connection over
+        // which nothing is underway.
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+
+        try await device.send(notification(sid: "uuid:two"))
+        let second = try await device.receiveResponseLine()
+        XCTAssertEqual(second, "HTTP/1.1 200 OK", "the connection was closed between notifications")
+        XCTAssertEqual(received.requests.map { $0.header("SID") }, ["uuid:one", "uuid:two"])
+    }
+
+    /// The other side of it: a device that opens a connection, starts a notification and then falls
+    /// silent may not hold on to it forever.
+    func testAConnectionThatStopsHalfwayThroughANotificationIsClosed() async throws {
+        server = HTTPServer(requestTimeout: 0.5)
+        server.handler = { _ in .ok() }
+        try await server.start(port: port)
+
+        let device = RawClient(port: port)
+        try await device.connect()
+        defer { device.close() }
+
+        // A body is promised that never arrives.
+        try await device.send("NOTIFY /Event/abc HTTP/1.1\r\nSID: uuid:one\r\nContent-Length: 100\r\n\r\n")
+
+        let closed = try await device.waitUntilClosed(within: 5)
+        XCTAssertTrue(closed, "the half finished notification kept its connection open")
+    }
+
+    private func notification(sid: String) -> String {
+        let body = "<propertyset/>"
+        return "NOTIFY /Event/abc HTTP/1.1\r\nSID: \(sid)\r\nContent-Length: \(body.utf8.count)\r\n\r\n\(body)"
+    }
+
+    /// A device that says exactly what it is told to say, when it is told to say it: URLSession
+    /// decides for itself when to open and close connections.
+    private final class RawClient {
+        private let connection: NWConnection
+        private let queue = DispatchQueue(label: "com.katoemba.swiftupnp.tests.rawclient")
+
+        init(port: UInt16) {
+            connection = NWConnection(host: "127.0.0.1", port: NWEndpoint.Port(rawValue: port)!, using: .tcp)
+        }
+
+        func connect() async throws {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                var resumed = false
+                connection.stateUpdateHandler = { state in
+                    guard resumed == false else { return }
+                    switch state {
+                    case .ready:
+                        resumed = true
+                        continuation.resume()
+                    case let .failed(error):
+                        resumed = true
+                        continuation.resume(throwing: error)
+                    default:
+                        break
+                    }
+                }
+                connection.start(queue: queue)
+            }
+        }
+
+        func close() {
+            connection.stateUpdateHandler = nil
+            connection.cancel()
+        }
+
+        func send(_ text: String) async throws {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                connection.send(content: Data(text.utf8), completion: .contentProcessed { error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    }
+                    else {
+                        continuation.resume()
+                    }
+                })
+            }
+        }
+
+        /// The status line of the next response, which is enough to tell that one arrived at all.
+        func receiveResponseLine() async throws -> String? {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String?, Error>) in
+                connection.receive(minimumIncompleteLength: 1, maximumLength: 64 * 1024) { data, _, _, error in
+                    if let error {
+                        return continuation.resume(throwing: error)
+                    }
+                    let text = data.flatMap { String(data: $0, encoding: .utf8) }
+                    continuation.resume(returning: text?.components(separatedBy: "\r\n").first)
+                }
+            }
+        }
+
+        /// Whether the server closed the connection within the given number of seconds.
+        func waitUntilClosed(within seconds: TimeInterval) async throws -> Bool {
+            let deadline = Date(timeIntervalSinceNow: seconds)
+            while Date() < deadline {
+                let isClosed = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+                    connection.receive(minimumIncompleteLength: 1, maximumLength: 1024) { _, _, isComplete, error in
+                        continuation.resume(returning: isComplete || error != nil)
+                    }
+                }
+                if isClosed { return true }
+            }
+            return false
         }
     }
 
