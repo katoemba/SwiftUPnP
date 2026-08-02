@@ -8,7 +8,6 @@
 //
 
 import XCTest
-import Swifter
 import Mocker
 @testable import SwiftUPnP
 
@@ -24,7 +23,7 @@ private final class FakeEventEndpoint {
         case refused(statusCode: Int)
     }
 
-    private let server = HttpServer()
+    private let server = HTTPServer()
     private let lock = NSLock()
     private var _answer = Answer.granted(timeout: "Second-120")
     private var _subscribeCount = 0
@@ -42,14 +41,14 @@ private final class FakeEventEndpoint {
         lock.lock(); defer { lock.unlock() }; return _unsubscribeCount
     }
 
-    init() throws {
+    init() async throws {
         port = IPHelper.freePortFromRange(range: 52000..<52099)
-        server["/event"] = { [weak self] request in
+        server.handler = { [weak self] request in
+            guard let self else { return .internalServerError("gone") }
+            guard request.path == "/event" else { return .notFound() }
 
-            guard let self else { return .internalServerError(.text("gone")) }
-
-            switch request.method.lowercased() {
-            case "subscribe":
+            switch request.method {
+            case "SUBSCRIBE":
                 self.lock.lock()
                 self._subscribeCount += 1
                 let answer = self._answer
@@ -61,29 +60,29 @@ private final class FakeEventEndpoint {
                     if let timeout {
                         headers["TIMEOUT"] = timeout
                     }
-                    return .raw(200, "OK", headers, nil)
+                    return .status(200, "OK", headers: headers)
                 case .grantedWithoutSubscriptionId:
-                    return .raw(200, "OK", ["TIMEOUT": "Second-120"], nil)
+                    return .status(200, "OK", headers: ["TIMEOUT": "Second-120"])
                 case let .refused(statusCode):
-                    return .raw(statusCode, "Refused", nil, nil)
+                    return .status(statusCode, "Refused")
                 }
-            case "unsubscribe":
+            case "UNSUBSCRIBE":
                 self.lock.lock()
                 self._unsubscribeCount += 1
                 self.lock.unlock()
 
-                return .raw(200, "OK", nil, nil)
+                return .status(200, "OK")
             default:
-                return .internalServerError(.text("unexpected method \(request.method)"))
+                return .internalServerError("unexpected method \(request.method)")
             }
         }
-        try startListening()
+        try await startListening()
     }
 
     /// Make the device reachable, or unreachable, so a request that fails outright can be tested
     /// next to one that is answered with a refusal.
-    func startListening() throws {
-        try server.start(port)
+    func startListening() async throws {
+        try await server.start(port: port)
     }
 
     func stopListening() {
@@ -96,8 +95,8 @@ final class UPnPSubscriptionTests: XCTestCase {
     private var device: UPnPDevice!
     private var service: UPnPService!
 
-    override func setUpWithError() throws {
-        endpoint = try FakeEventEndpoint()
+    override func setUp() async throws {
+        endpoint = try await FakeEventEndpoint()
 
         let base = "http://127.0.0.1:\(endpoint.port)"
         // These tests talk to a server of their own rather than to mocked responses, and other tests
@@ -139,7 +138,7 @@ final class UPnPSubscriptionTests: XCTestCase {
         let statusWhileUnreachable = await service.subscriptionStatus
         XCTAssertNotEqual(statusWhileUnreachable, .subscribed)
 
-        try endpoint.startListening()
+        try await endpoint.startListening()
 
         try await waitUntilSubscribed()
     }

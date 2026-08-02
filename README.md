@@ -106,7 +106,7 @@ UPnP actions and responses are strongly typed, no key-value pairs. This is done 
 
 ## State changes
 Every service implementation has a Combine publisher stateSubject. When the service subscribes to state changes via subscribeToEvents(), those events will be delivered on the stateSubject as strongly typed structs.
-To receive state changes, a small webserver will be run (Swifter).
+To receive state changes, a small webserver will be run.
 
 ```swift
     let device: UPnPDevice
@@ -180,6 +180,5 @@ SwiftUPnP is released under the MIT license.
 
 ## Dependencies
 SwiftUPnP use the following packages:
-- Swifter provides a small http server to listen for state changes triggered by UPnP devices.
 - XMLCoder is used to encode and decode SOAP envelopes.
 - CocoaAsyncSocket to detect UPnP devices on the network using multicast.

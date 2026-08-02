@@ -18,7 +18,6 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(url: "https://github.com/CoreOffice/XMLCoder.git", from: "0.13.1"),
-        .package(url: "https://github.com/httpswift/swifter.git", branch: "stable"),
         .package(url: "https://github.com/robbiehanson/CocoaAsyncSocket.git", branch: "master"),
         .package(url: "https://github.com/WeTransfer/Mocker.git", .upToNextMajor(from: "3.0.0"))
     ],
@@ -28,7 +27,6 @@ let package = Package(
         .target(
             name: "SwiftUPnP",
             dependencies: [.product(name: "XMLCoder", package: "xmlcoder"),
-                           .product(name: "Swifter", package: "swifter"),
                            .product(name: "CocoaAsyncSocket", package: "cocoaasyncsocket")],
             path: "Source"),
         .executableTarget(
@@ -38,8 +36,7 @@ let package = Package(
         .testTarget(
             name: "SwiftUPnPTests",
             dependencies: ["SwiftUPnP",
-                           .product(name: "Mocker", package: "mocker"),
-                           .product(name: "Swifter", package: "swifter")],
+                           .product(name: "Mocker", package: "mocker")],
             resources: [.process("Resources")])
         ]
 )
