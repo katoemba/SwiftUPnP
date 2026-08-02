@@ -150,11 +150,17 @@ public class UPnPDevice: Equatable, Identifiable, Hashable {
             
         if let deviceServices = deviceDefinition?.device.serviceList?.service {
             for deviceService in deviceServices {
-                guard let service = UPnPRegistry.typedService(device: self,
-                                                              serviceUrn: deviceService.serviceType,
-                                                              eventPublisher: registry?.eventPublisher,
-                                                              eventCallbackUrl: registry?.eventCallbackUrl) else { continue }
-                
+                // Create the service through the registry when there is one, so it is known there
+                // and keeps receiving a valid event callback url.
+                let service: UPnPService?
+                if let registry {
+                    service = await registry.typedService(device: self, serviceUrn: deviceService.serviceType)
+                }
+                else {
+                    service = UPnPRegistry.typedService(device: self, serviceUrn: deviceService.serviceType)
+                }
+                guard let service else { continue }
+
                 await service.loadScdp()
                 await add(service)
             }

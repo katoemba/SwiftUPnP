@@ -122,18 +122,31 @@ public class UPnPRegistry {
         guard !httpServer.operating else { return }
         startHTTPServer()
     }
-        
+
+    /// Rebuild the path over which events are received: restart the server that listens for them
+    /// and hand every known service the callback url to receive them on.
+    ///
+    /// Needed when events stop arriving while subscribing and renewing keep reporting success. Both
+    /// causes are invisible from the outside: the url the devices post to contains our ip address,
+    /// which changes when the network changes, and the server can stop listening without reporting
+    /// that it did (which is why the server is restarted unconditionally here).
+    @MainActor
+    public func recoverEventDelivery() {
+        Logger.swiftUPnP.notice("Rebuilding the event delivery path")
+
+        httpServer.stop()
+        startHTTPServer()
+    }
+
     @MainActor
     internal func startHTTPServer() {
         do {
             try httpServer.start(httpServerPort)
-            
+
             eventCallbackUrl = callbackUrl()
             if let eventCallbackUrl = eventCallbackUrl {
-                for device in devices {
-                    for service in device.services {
-                        service.eventCallbackUrl = eventCallbackUrl
-                    }
+                for service in knownServices() {
+                    service.eventCallbackUrl = eventCallbackUrl
                 }
             }
         }
@@ -141,6 +154,28 @@ public class UPnPRegistry {
             Logger.swiftUPnP.error("Couldn't start http server on port \(self.httpServerPort)")
             Logger.swiftUPnP.error("\(error.localizedDescription)")
         }
+    }
+
+    /// Services are held weakly: they are owned by their device, which for a device that was
+    /// reanimated rather than discovered is not held by this registry at all.
+    private final class WeakService {
+        weak var service: UPnPService?
+        init(_ service: UPnPService) {
+            self.service = service
+        }
+    }
+    @MainActor
+    private var services = [WeakService]()
+
+    @MainActor
+    internal func register(_ service: UPnPService) {
+        services.append(WeakService(service))
+    }
+
+    @MainActor
+    private func knownServices() -> [UPnPService] {
+        services.removeAll { $0.service == nil }
+        return services.compactMap { $0.service }
     }
     
     @MainActor
@@ -192,8 +227,20 @@ public class UPnPRegistry {
         deviceRemovedSubject.send(device)
     }
     
+    /// Create a service that receives its events through this registry, and remember it so its
+    /// callback url can be refreshed when the event delivery path is rebuilt.
+    @MainActor
     func typedService(device: UPnPDevice, serviceUrn: String) -> UPnPService? {
-        Self.typedService(device: device, serviceUrn: serviceUrn, eventPublisher: eventPublisher, eventCallbackUrl: eventCallbackUrl)
+        // The stored url can be from before the network changed, or missing because there was no
+        // network yet when this registry was created.
+        if eventCallbackUrl == nil || httpServer.operating == false {
+            startHTTPServerIfNotRunning()
+        }
+
+        guard let service = Self.typedService(device: device, serviceUrn: serviceUrn, eventPublisher: eventPublisher, eventCallbackUrl: eventCallbackUrl) else { return nil }
+
+        register(service)
+        return service
     }
     
     static func typedService(device: UPnPDevice, serviceUrn: String, eventPublisher: AnyPublisher<(String, Data), Never>? = nil, eventCallbackUrl: URL? = nil) -> UPnPService? {

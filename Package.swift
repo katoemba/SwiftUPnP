@@ -37,8 +37,9 @@ let package = Package(
             path: "CodeGenerator"),
         .testTarget(
             name: "SwiftUPnPTests",
-            dependencies: ["SwiftUPnP", 
-                           .product(name: "Mocker", package: "mocker")],
+            dependencies: ["SwiftUPnP",
+                           .product(name: "Mocker", package: "mocker"),
+                           .product(name: "Swifter", package: "swifter")],
             resources: [.process("Resources")])
         ]
 )
