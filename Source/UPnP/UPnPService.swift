@@ -59,19 +59,40 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
     private var serviceDefinition: UPnPServiceDefinition?
     
     private let eventPublisher: AnyPublisher<(String, Data), Never>?
-    internal lazy var subscribedEventPublisher: AnyPublisher<Data, Never> = {
-        guard let eventPublisher else { return Empty().eraseToAnyPublisher() }
-        
-        return eventPublisher.share()
-            .filter { [weak self] in
-                self?.subscriptionId == $0.0
-            }
-            .map {
-                $0.1
-            }
-            .eraseToAnyPublisher()
-    }()
-    private var subscriptionId: String?
+    private var _subscribedEventPublisher: AnyPublisher<Data, Never>?
+    /// The events of this service, recognized by the id of the current subscription.
+    ///
+    /// Both this publisher and the id it filters on are reached from whatever thread an event
+    /// arrives on as well as from the maintenance loop, so both are guarded by `stateLock`.
+    internal var subscribedEventPublisher: AnyPublisher<Data, Never> {
+        stateLock.lock(); defer { stateLock.unlock() }
+
+        if let _subscribedEventPublisher { return _subscribedEventPublisher }
+
+        let publisher: AnyPublisher<Data, Never>
+        if let eventPublisher {
+            publisher = eventPublisher.share()
+                .filter { [weak self] in
+                    self?.subscriptionId == $0.0
+                }
+                .map {
+                    $0.1
+                }
+                .eraseToAnyPublisher()
+        }
+        else {
+            publisher = Empty().eraseToAnyPublisher()
+        }
+
+        _subscribedEventPublisher = publisher
+        return publisher
+    }
+
+    private var _subscriptionId: String?
+    private var subscriptionId: String? {
+        get { stateLock.lock(); defer { stateLock.unlock() }; return _subscriptionId }
+        set { stateLock.lock(); _subscriptionId = newValue; stateLock.unlock() }
+    }
     @MainActor
     public private(set) var subscriptionStatus = SubscriptionStatus.unsubscribed
     @MainActor
@@ -125,15 +146,18 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
     /// used for all further attempts.
     private static let retryDelays = [1, 2, 5, 10, 20, 30]
 
-    private let eventStateLock = NSLock()
+    /// Guards the state that is reached both from the maintenance loop and from the threads
+    /// events arrive on.
+    private let stateLock = NSLock()
     private var _lastEventReceived: Date?
     private var _subscriptionActiveSince: Date?
+    @MainActor
     private var eventObserver: AnyCancellable?
 
     /// When the last state change for this service was received, or nil if nothing was received
     /// since the current subscription was established.
     public var lastEventReceived: Date? {
-        eventStateLock.lock(); defer { eventStateLock.unlock() }; return _lastEventReceived
+        stateLock.lock(); defer { stateLock.unlock() }; return _lastEventReceived
     }
 
     /// How long this service has been silent: the time since the last state change was received,
@@ -144,27 +168,28 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
     /// meaningfully longer than a subscription is young is a sign that events are not reaching us,
     /// even though subscribing and renewing keep reporting success.
     public var eventSilence: TimeInterval? {
-        eventStateLock.lock(); defer { eventStateLock.unlock() }
+        stateLock.lock(); defer { stateLock.unlock() }
 
         guard let reference = _lastEventReceived ?? _subscriptionActiveSince else { return nil }
         return Date().timeIntervalSince(reference)
     }
 
     private func markSubscriptionActive() {
-        eventStateLock.lock()
+        stateLock.lock()
         _subscriptionActiveSince = Date()
         _lastEventReceived = nil
-        eventStateLock.unlock()
+        stateLock.unlock()
     }
 
     private func markSubscriptionInactive() {
-        eventStateLock.lock()
+        stateLock.lock()
         _subscriptionActiveSince = nil
         _lastEventReceived = nil
-        eventStateLock.unlock()
+        stateLock.unlock()
     }
 
     /// Record incoming events, so that a subscription that stopped delivering can be detected.
+    @MainActor
     private func observeEventsIfNeeded() {
         guard eventObserver == nil else { return }
 
@@ -172,9 +197,9 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
             .sink { [weak self] _ in
                 guard let self else { return }
 
-                self.eventStateLock.lock()
+                self.stateLock.lock()
                 self._lastEventReceived = Date()
-                self.eventStateLock.unlock()
+                self.stateLock.unlock()
             }
     }
 
@@ -309,7 +334,7 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
     public func subscribeToEvents() async {
         guard eventUrl != nil else { return }
 
-        observeEventsIfNeeded()
+        await observeEventsIfNeeded()
         _ = await startMaintenanceIfNeeded()
     }
 
@@ -457,7 +482,7 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
     public func unsubscribeFromEvents() async {
         await cancelMaintenance()
 
-        guard let eventUrl, let subscriptionId = await activeSubscriptionId() else {
+        guard let eventUrl, let subscriptionId = subscriptionId else {
             await setSubcriptionStatus(.unsubscribed, subscriptionId: nil)
             markSubscriptionInactive()
             return
@@ -484,8 +509,4 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
         await setSubcriptionStatus(.unsubscribed, subscriptionId: nil)
     }
 
-    @MainActor
-    private func activeSubscriptionId() -> String? {
-        subscriptionId
-    }
 }
