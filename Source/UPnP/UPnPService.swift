@@ -287,9 +287,44 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
             Logger.swiftUPnP.info("Body(\(action)): \(httpBodyString)")
         }
         
-        let (_, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        if log == .response || log == .bodyAndResponse, let httpResponseBodyString = String(data: data, encoding: .utf8) {
+            Logger.swiftUPnP.info("Response Body(\(action)): \(httpResponseBodyString)")
+        }
+
+        // An action without output arguments still has to be checked: a device that refuses it answers
+        // with a SOAP fault, which would otherwise pass for success.
+        try Self.throwIfFault(action: action, data: data, response: response)
     }
     
+    /// Reports the SOAP fault a device answers with when it refuses an action.
+    ///
+    /// A fault comes back with an HTTP error status and a body carrying a UPnP error code and
+    /// description. Anything else is left alone, including a device that answers an error status with
+    /// a body that cannot be read.
+    private static func throwIfFault(action: String, data: Data, response: URLResponse) throws {
+        guard let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) else { return }
+
+        let body = String(data: data, encoding: .utf8) ?? ""
+        let code = value(ofElement: "errorCode", in: body) ?? "\(httpResponse.statusCode)"
+        let description = value(ofElement: "errorDescription", in: body)
+            ?? value(ofElement: "faultstring", in: body)
+            ?? "no description"
+
+        throw ServiceParseError.soapFault(action: action, code: code, description: description)
+    }
+
+    /// The text of the first element with the given name, namespace prefix or not.
+    private static func value(ofElement name: String, in xml: String) -> String? {
+        guard let range = xml.range(of: "<([a-zA-Z0-9]+:)?\\(name)[^>]*>", options: [.regularExpression]),
+              let end = xml.range(of: "</([a-zA-Z0-9]+:)?\\(name)>", options: [.regularExpression], range: range.upperBound..<xml.endIndex) else {
+            return nil
+        }
+
+        let value = String(xml[range.upperBound..<end.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
+
     internal func postWithResult<T: Decodable>(action: String, envelope: Codable, log: MessageLog = .none) async throws -> T {
         var request = URLRequest(url: controlUrl)
         request.httpMethod = "POST"
@@ -315,11 +350,15 @@ public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable
             Logger.swiftUPnP.info("Body(\(action)): \(httpBodyString)")
         }
 
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
         if log == .response || log == .bodyAndResponse, let httpResponseBodyString = String(data: data, encoding: .utf8) {
             Logger.swiftUPnP.info("Response Body(\(action)): \(httpResponseBodyString)")
         }
-        
+
+        // Reported before decoding, so that a refusal says what the device objected to instead of
+        // surfacing as a response that could not be parsed.
+        try Self.throwIfFault(action: action, data: data, response: response)
+
         let decoder = XMLDecoder()
         decoder.shouldProcessNamespaces = false
         

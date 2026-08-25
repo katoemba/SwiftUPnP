@@ -28,6 +28,26 @@ import Foundation
 
 public enum ServiceParseError: Error {
     case noValidResponse
+    /// The device refused the action and answered with a SOAP fault. `code` and `description` hold the
+    /// UPnP error it reported, such as 402 'Invalid Args' or 501 'Action Failed'.
+    case soapFault(action: String, code: String, description: String)
+}
+
+extension ServiceParseError: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .noValidResponse:
+            return "no valid response"
+        case let .soapFault(action, code, description):
+            return "\(action) refused with UPnP error \(code) '\(description)'"
+        }
+    }
+}
+
+extension ServiceParseError: LocalizedError {
+    public var errorDescription: String? {
+        description
+    }
 }
 
 extension Data {
