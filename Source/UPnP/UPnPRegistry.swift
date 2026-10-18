@@ -38,6 +38,8 @@ public class UPnPRegistry {
 
     @MainActor
     private var devices = [UPnPDevice]()
+    /// Devices whose description and services are being loaded.
+    private var loadingDevices = Set<ObjectIdentifier>()
     private var deviceAddedSubject = PassthroughSubject<UPnPDevice, Never>()
     // devices are always delivered on the main thread.
     public var deviceAdded: AnyPublisher<UPnPDevice, Never> {
@@ -109,7 +111,8 @@ public class UPnPRegistry {
             return
         }
 
-        Task {
+        // The discovery engine keeps its state on the main queue, like its socket callbacks.
+        Task { @MainActor in
             await startHTTPServerIfNotRunning()
             try discoveryEngine.startDiscovery(forTypes: filteredTypes)
             discoveryEngine.searchRequest()
@@ -117,13 +120,11 @@ public class UPnPRegistry {
     }
     
     public func stopDiscovery() {
-        Task {
-            await stopHTTPServer()
-            await MainActor.run {
-                devices.removeAll(keepingCapacity: false)
-            }
+        Task { @MainActor in
+            discoveryEngine.stopDiscovery()
+            stopHTTPServer()
+            devices.removeAll(keepingCapacity: false)
         }
-        discoveryEngine.stopDiscovery()
     }
     
     @MainActor
@@ -246,16 +247,29 @@ public class UPnPRegistry {
     
     @MainActor
     public func add(_ device: UPnPDevice) {
-        guard devices.contains(where: { $0.id == device.id && $0.servicesLoaded == true }) == false else { return }
+        // A device that is already loaded is only loaded again when it is now found at another address (it got
+        // a new IP address, for example), otherwise its services keep pointing at the old one.
+        // The same goes for one that is still being loaded: devices answer each search more than once, and searches
+        // are repeated, so loading it again would only produce a second copy of the same device.
+        guard devices.contains(where: { $0.id == device.id && $0.url == device.url && ($0.servicesLoaded == true || loadingDevices.contains(ObjectIdentifier($0))) }) == false else { return }
+        // The device that is replaced was announced to subscribers, so tell them it is gone before the new one comes.
+        let replaced = devices.filter { $0.id == device.id }
         devices.removeAll(where:  { $0.id == device.id })
         devices.append(device)
+        for old in replaced where old.servicesLoaded {
+            deviceRemovedSubject.send(old)
+        }
         
         Logger.swiftUPnP.debug("device \(device.id)")
+        loadingDevices.insert(ObjectIdentifier(device))
         Task {
+            defer { loadingDevices.remove(ObjectIdentifier(device)) }
             guard await device.loadRoot() == true else {
                 Logger.swiftUPnP.error("Failed to load root on \(device.url)")
                 return
             }
+            // Replaced or removed while loading the description: don't register services for a device nobody holds.
+            guard devices.contains(where: { $0 === device }) else { return }
             
             if let deviceServices = device.deviceDefinition?.device.serviceList?.service {
                 for deviceService in deviceServices {
@@ -267,6 +281,8 @@ public class UPnPRegistry {
             }
             
             device.servicesLoaded = true
+            // Found at another address while loading, or removed: that one counts now.
+            guard devices.contains(where: { $0 === device }) else { return }
             deviceAddedSubject.send(device)
         }
     }
@@ -275,7 +291,10 @@ public class UPnPRegistry {
     func remove(_ device: UPnPDevice) {
         guard let device = devices.first(where: { $0.id == device.id }) else { return }
         devices.removeAll(where: { $0.id == device.id })
-        deviceRemovedSubject.send(device)
+        // A device that was still loading was never announced.
+        if device.servicesLoaded {
+            deviceRemovedSubject.send(device)
+        }
     }
     
     /// Create a service that receives its events through this registry, and remember it so its
