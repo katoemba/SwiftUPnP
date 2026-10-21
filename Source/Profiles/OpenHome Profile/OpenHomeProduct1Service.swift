@@ -23,7 +23,6 @@
 //
 
 import Foundation
-import Combine
 import XMLCoder
 import os.log
 
@@ -501,7 +500,7 @@ public class OpenHomeProduct1Service: UPnPService, @unchecked Sendable {
 
 // Event parser
 extension OpenHomeProduct1Service {
-	public struct State: Codable {
+	public struct State: Codable, Sendable {
 		enum CodingKeys: String, CodingKey {
 			case manufacturerName = "ManufacturerName"
 			case manufacturerInfo = "ManufacturerInfo"
@@ -635,17 +634,7 @@ extension OpenHomeProduct1Service {
 		}
 	}
 
-	public var stateSubject: AnyPublisher<State, Never> {
-		subscribedEventPublisher
-			.compactMap { [weak self] in
-				guard let self else { return nil }
-
-				return try? self.state(xml: $0)
-			}
-			.eraseToAnyPublisher()
-	}
-
 	public var stateChangeStream: AsyncStream<State> {
-		stateSubject.stream
+		stateStream { [weak self] in try? self?.state(xml: $0) }
 	}
 }

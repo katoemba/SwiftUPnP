@@ -28,15 +28,28 @@ import Foundation
 import XMLCoder
 import os.log
 
-public struct UPnPDeviceDescription: Codable {
-    let uuid: String
-    let deviceId: String
-    let deviceType: String
-    let url: URL
-    let lastSeen: Date
+public struct UPnPDeviceDescription: Codable, Sendable {
+    public let uuid: String
+    public let deviceId: String
+    public let deviceType: String
+    public let url: URL
+    public let lastSeen: Date
+    
+    public init(uuid: String, deviceId: String, deviceType: String, url: URL, lastSeen: Date) {
+        self.uuid = uuid
+        self.deviceId = deviceId
+        self.deviceType = deviceType
+        self.url = url
+        self.lastSeen = lastSeen
+    }
 }
 
-public class UPnPDevice: Equatable, Identifiable, Hashable, @unchecked Sendable {
+/// Isolated to the main actor: everything that changes about a device — when it was last seen, its
+/// description, its services — is reached both from the thread an SSDP message arrives on and from
+/// whoever is listening for devices, and the main actor is where discovery already does its work.
+/// What identifies a device never changes, and stays readable from anywhere.
+@MainActor
+public class UPnPDevice: Equatable, Identifiable, Hashable {
     public let uuid: String
     public let deviceId: String
     public let deviceType: String
@@ -52,7 +65,9 @@ public class UPnPDevice: Equatable, Identifiable, Hashable, @unchecked Sendable 
     }
     
     public var deviceDefinition: UPnPDeviceDefinition?
+    @MainActor
     public var services = [UPnPService]()
+    @MainActor
     public internal(set) var servicesLoaded: Bool {
         didSet {
             if servicesLoaded {
@@ -75,22 +90,27 @@ public class UPnPDevice: Equatable, Identifiable, Hashable, @unchecked Sendable 
         return UPnPDevice(upnpDeviceDescription: upnpDeviceDescription)
     }
     
-    /// Create a fully loaded UPnPDevice, but without adding it to a device registry. There is no subscription for state changes on the services on this device.
+    @MainActor
+    /// Create a fully loaded UPnPDevice, but without adding it to a device registry. There is no subscription for state changes on the services on this device, unless a valid UPnPRegistry is passed in.
     /// - Parameter data: a data representation of the description of the service
+    /// - Parameter registry: a registry with a http server that can be used to receive events
     /// - Returns: a fully loaded device, or nil if it can't be found/loaded
-    public static func reanimateDeep(from data: Data) async -> UPnPDevice? {
+    public static func reanimateDeep(from data: Data, registry: UPnPRegistry? = nil) async -> UPnPDevice? {
         guard let upnpDeviceDescription = try? JSONDecoder().decode(UPnPDeviceDescription.self, from: data) else { return nil }
-        return await reanimateDeep(upnpDeviceDescription: upnpDeviceDescription)
+        return await reanimateDeep(upnpDeviceDescription: upnpDeviceDescription, registry: registry)
     }
 
-    /// Create a fully loaded UPnPDevice, but without adding it to a device registry. There is no subscription for state changes on the services on this device.
+    @MainActor
+    /// Create a fully loaded UPnPDevice, but without adding it to a device registry. There is no subscription for state changes on the services on this device, unless a valid UPnPRegistry is passed in.
     /// - Parameter upnpDeviceDescription: a description of the service
+    /// - Parameter registry: a registry with a http server that can be used to receive events
     /// - Returns: a fully loaded device, or nil if it can't be found/loaded
-    public static func reanimateDeep(upnpDeviceDescription: UPnPDeviceDescription) async -> UPnPDevice? {
+    public static func reanimateDeep(upnpDeviceDescription: UPnPDeviceDescription, registry: UPnPRegistry? = nil) async -> UPnPDevice? {
         let device = UPnPDevice(upnpDeviceDescription: upnpDeviceDescription)
         
-        if await device.loadServices() {
+        if await device.loadServices(registry: registry) {
             device.servicesLoaded = true
+            
             return device
         }
         
@@ -106,19 +126,19 @@ public class UPnPDevice: Equatable, Identifiable, Hashable, @unchecked Sendable 
         self.servicesLoaded = false
     }
 
-    public static func == (lhs: UPnPDevice, rhs: UPnPDevice) -> Bool {
+    public nonisolated static func == (lhs: UPnPDevice, rhs: UPnPDevice) -> Bool {
         lhs.id == rhs.id
     }
     
-    public var id: String {
+    public nonisolated var id: String {
         "\(uuid)::\(deviceId)"
     }
 
-    public func hash(into hasher: inout Hasher) {
+    public nonisolated func hash(into hasher: inout Hasher) {
         id.hash(into: &hasher)
     }
 
-    var description: String {
+    nonisolated var description: String {
         "Device urn: \(id)\nurl: \(url)"
     }
     
@@ -127,7 +147,8 @@ public class UPnPDevice: Equatable, Identifiable, Hashable, @unchecked Sendable 
         services.append(service)
     }
     
-    func loadServices() async -> Bool {
+    @MainActor
+    func loadServices(registry: UPnPRegistry?) async -> Bool {
         guard await loadRoot() == true else {
             Logger.swiftUPnP.error("Failed to load root on \(self.url)")
             return false
@@ -135,16 +156,26 @@ public class UPnPDevice: Equatable, Identifiable, Hashable, @unchecked Sendable 
             
         if let deviceServices = deviceDefinition?.device.serviceList?.service {
             for deviceService in deviceServices {
-                guard let service = UPnPRegistry.typedService(device: self, serviceUrn: deviceService.serviceType) else { continue }
-                
+                // Create the service through the registry when there is one, so it is known there
+                // and keeps receiving a valid event callback url.
+                let service: UPnPService?
+                if let registry {
+                    service = registry.typedService(device: self, serviceUrn: deviceService.serviceType)
+                }
+                else {
+                    service = UPnPRegistry.typedService(device: self, serviceUrn: deviceService.serviceType)
+                }
+                guard let service else { continue }
+
                 await service.loadScdp()
-                await add(service)
+                add(service)
             }
         }
         
         return true
     }
     
+    @MainActor
     func loadRoot() async -> Bool {
         var request = URLRequest(url: url, timeoutInterval: 3.0)
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
@@ -175,7 +206,7 @@ public class UPnPDevice: Equatable, Identifiable, Hashable, @unchecked Sendable 
         }
         
         return false
-    }
+    }    
 }
 
 @MainActor

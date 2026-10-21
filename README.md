@@ -12,48 +12,60 @@ Overall, SwiftUPnP is a useful tool for developers who want to add UPnP and Open
 
 Key features that make this easy to use in a modern swift environment:
 - Concurrency and thread safety through async/await and @MainActor
-- Uses Combine for stream-based state updates.
+- Device discovery and state updates are delivered as AsyncStreams, with no Combine dependency.
 - Strongly typed services, based on Codable structs.
 - Structured logging through the os.log framework.
 
 ## System requirements
-The minimum requirements for the SwiftUPnP library are:
-- iOS 14
-- macOS 11 Big Sur
+SwiftUPnP is built in the Swift 6 language mode, and the minimum requirements are:
+- Swift 6.0 (Xcode 16)
+- iOS 18
+- macOS 15 Sequoia
+- watchOS 11
+- tvOS 18
 
 ## Device discovery
 SSDP discovery is done using CocoaAsyncSocket. There is also support for using the standard Apple Network framework, but this has a known issue when another app is also listening for UPnP devices. 
 Only devices are discovered, the available sources are loaded based on the description of the device.
-(Dis)appearance of devices on the network is published via Combine publishers defined in UPnPRegistery: deviceAdded and deviceRemoved. When a device is published on the subject, it's fully loaded with all included service definitions.
+(Dis)appearance of devices on the network is reported by two AsyncStreams defined in UPnPRegistry: deviceAddedStream and deviceRemovedStream. Every reader gets a stream of its own and sees the devices that are found from then on. When a device is reported, it's fully loaded with all included service definitions.
 
 ```swift
-    private let openHomeRegistry = UPnPRegistry.shared
-    private var cancellables = Set<AnyCancellable>()
+    @MainActor
+    final class DeviceMonitor {
+        private let openHomeRegistry = UPnPRegistry.shared
+        private var watchers = [Task<Void, Never>]()
 
-    public init() {
-        openHomeRegistry.deviceAdded
-            .sink {
-                print("Detected device \($0.deviceDefinition.device.friendlyName) of type \($0.deviceType)")
-            }
-            .store(in: &cancellables)
-        
-        openHomeRegistry.deviceRemoved
-            .sink {
-                print("Removed device \($0.deviceDefinition.device.friendlyName) of type \($0.deviceType)")
-            }
-            .store(in: &cancellables)
-    }
+        public init() {
+            let added = openHomeRegistry.deviceAddedStream
+            watchers.append(Task {
+                for await device in added {
+                    print("Detected device \(device.deviceDefinition?.device.friendlyName ?? "?") of type \(device.deviceType)")
+                }
+            })
 
-    public func startListening() {
-        // A list of device types can be passed to discover. The default devices types used when nothing is specified:
-        // urn:schemas-upnp-org:device:MediaServer:1
-        // urn:linn-co-uk:device:Source:1
-        // urn:av-openhome-org:device:Source:1
-        try? openHomeRegistry.startDiscovery()
-    }
-    
-    public func stopListening() {
-        openHomeRegistry.stopDiscovery()
+            let removed = openHomeRegistry.deviceRemovedStream
+            watchers.append(Task {
+                for await device in removed {
+                    print("Removed device \(device.deviceDefinition?.device.friendlyName ?? "?") of type \(device.deviceType)")
+                }
+            })
+        }
+
+        deinit {
+            watchers.forEach { $0.cancel() }
+        }
+
+        public func startListening() async {
+            // A list of device types can be passed to discover. The default devices types used when nothing is specified:
+            // urn:schemas-upnp-org:device:MediaServer:1
+            // urn:linn-co-uk:device:Source:1
+            // urn:av-openhome-org:device:Source:1
+            try? await openHomeRegistry.startDiscovery()
+        }
+
+        public func stopListening() {
+            openHomeRegistry.stopDiscovery()
+        }
     }
 ```
 
@@ -105,38 +117,23 @@ UPnP actions and responses are strongly typed, no key-value pairs. This is done 
 ```
 
 ## State changes
-Every service implementation has a Combine publisher stateSubject. When the service subscribes to state changes via subscribeToEvents(), those events will be delivered on the stateSubject as strongly typed structs.
-To receive state changes, a small webserver will be run (Swifter).
+Every service implementation has a stateChangeStream. When the service subscribes to state changes via subscribeToEvents(), those events are delivered on that stream as strongly typed structs.
+To receive state changes, a small webserver will be run.
 
-```swift
-    let device: UPnPDevice
-    var cancellables = Set<AnyCancellable>()
-
-    if let service = device.openHomeVolume1Service {
-        service.stateSubject
-            .sink {
-                print("Received volume change, volume = \($0.volume ?? -1)")
-            }
-            .store(in: &cancellables)
-            
-        Task {
-            await service.subscribeToEvents()
-        }
-    }
-```
-
-Alternatively you can loop over an AsyncStream:
+Take the stream before anything is sent - reading it is what starts listening, and a reader only sees the state changes that arrive from then on. Each reader gets a stream of its own, and none of them keeps the service alive.
 
 ```swift
     let device: UPnPDevice
 
     if let service = device.openHomeVolume1Service {
+        // Taken here rather than inside the task: accessing the stream is what starts listening.
+        let volumeChanges = service.stateChangeStream
         Task {
-            for await volumeChange in service.stateChangeStream {
+            for await volumeChange in volumeChanges {
                 print("Received volume change, volume = \(volumeChange.volume ?? -1)")
             }
         }
-            
+
         Task {
             await service.subscribeToEvents()
         }
@@ -180,6 +177,5 @@ SwiftUPnP is released under the MIT license.
 
 ## Dependencies
 SwiftUPnP use the following packages:
-- Swifter provides a small http server to listen for state changes triggered by UPnP devices.
 - XMLCoder is used to encode and decode SOAP envelopes.
 - CocoaAsyncSocket to detect UPnP devices on the network using multicast.

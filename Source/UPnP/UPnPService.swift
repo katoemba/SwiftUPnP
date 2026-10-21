@@ -26,11 +26,10 @@
 
 import Foundation
 import XMLCoder
-import Combine
 import os.log
 
-public actor UPnPService: Equatable, Identifiable, Hashable {
-    public enum SubscriptionStatus {
+public class UPnPService: Equatable, Identifiable, Hashable, @unchecked Sendable {
+    public enum SubscriptionStatus: Sendable {
         case unsubscribed
         case subscribing
         case subscribed
@@ -39,16 +38,17 @@ public actor UPnPService: Equatable, Identifiable, Hashable {
         case failed
     }
     
-    public enum MessageLog {
+    public enum MessageLog: Sendable {
         case none
         case body
         case response
         case bodyAndResponse
     }
     
-    public static let defaultSubscriptionTimeout = 120
+    /// The subscription timeout asked of a device, in seconds. Meant to be set once before
+    /// discovery starts; changing it while subscriptions are being maintained races with them.
+    nonisolated(unsafe) public static var defaultSubscriptionTimeout = 120
     
-    public nonisolated let id: String
     public let controlUrl: URL
     public let scpdUrl: URL
     public let eventUrl: URL?
@@ -59,62 +59,204 @@ public actor UPnPService: Equatable, Identifiable, Hashable {
     
     private var serviceDefinition: UPnPServiceDefinition?
     
-    private let eventStream: AsyncStream<(String, Data)>?
-    private let eventDataBus = DataEventBus()
-    internal let publishedEventStream: AsyncStream<Data>?
-    private var subscriptionId: String?
+    /// Every event that reaches the registry, of which this service picks out its own.
+    private let events: AsyncBroadcaster<UPnPEvent>?
+
+    /// The bodies of the events that belong to the current subscription.
+    ///
+    /// The subscription id is read as each event arrives rather than when the stream is started, so
+    /// a reader keeps receiving state changes across renewals and across a subscription that was
+    /// established anew. Every reader gets a stream of its own.
+    internal var subscribedEventStream: AsyncStream<Data> {
+        guard let events else { return AsyncStream { $0.finish() } }
+
+        let stream = events.stream
+        return AsyncStream(bufferingPolicy: .unbounded) { continuation in
+            let task = Task { [weak self] in
+                for await event in stream {
+                    // Nobody owns this service any more: nothing left to deliver its events to.
+                    guard let self else { break }
+                    guard event.subscriptionId == self.subscriptionId else { continue }
+
+                    continuation.yield(event.body)
+                }
+                continuation.finish()
+            }
+
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    /// The state changes of this service, as parsed by the service's own event parser. Used by the
+    /// generated services to offer their `stateChangeStream`.
+    internal func stateStream<State: Sendable>(_ parse: @escaping @Sendable (Data) -> State?) -> AsyncStream<State> {
+        let bodies = subscribedEventStream
+
+        return AsyncStream(bufferingPolicy: .unbounded) { continuation in
+            let task = Task {
+                for await body in bodies {
+                    // An event that can't be read is one state change that is missed, not a reason
+                    // to stop reporting the ones that follow.
+                    if let state = parse(body) {
+                        continuation.yield(state)
+                    }
+                }
+                continuation.finish()
+            }
+
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    private var _subscriptionId: String?
+    private var subscriptionId: String? {
+        get { stateLock.lock(); defer { stateLock.unlock() }; return _subscriptionId }
+        set { stateLock.lock(); _subscriptionId = newValue; stateLock.unlock() }
+    }
+    @MainActor
     public private(set) var subscriptionStatus = SubscriptionStatus.unsubscribed
+    @MainActor
     private func setSubcriptionStatus(_ subscriptionStatus: SubscriptionStatus, subscriptionId: String?) {
         self.subscriptionStatus = subscriptionStatus
         self.subscriptionId = subscriptionId
     }
-    private func startSubcribing() -> Bool {
-        guard subscriptionStatus == .unsubscribed || subscriptionStatus == .failed else { return false }
-        subscriptionStatus = .subscribing
+
+    /// The task that keeps the subscription alive. Its presence means a subscription is wanted;
+    /// it is the only thing that subscribes or renews, which is what keeps those serialized.
+    @MainActor
+    private var maintenanceTask: Task<Void, Never>?
+    @MainActor
+    private func startMaintenanceIfNeeded() -> Bool {
+        guard maintenanceTask == nil else { return false }
+
+        maintenanceTask = Task { [weak self] in
+            var failures = 0
+
+            while Task.isCancelled == false {
+                let secondsUntilNextAttempt: Int
+
+                // Hold on to the service only while an attempt is in flight, so that it can be
+                // released while the loop waits for the next renewal.
+                if let self {
+                    if let seconds = await self.performSubscriptionAttempt() {
+                        failures = 0
+                        secondsUntilNextAttempt = seconds
+                    }
+                    else {
+                        failures += 1
+                        secondsUntilNextAttempt = Self.retryDelays[min(failures - 1, Self.retryDelays.count - 1)]
+                    }
+                }
+                else {
+                    return
+                }
+
+                try? await Task.sleep(nanoseconds: UInt64(secondsUntilNextAttempt) * 1_000_000_000)
+            }
+        }
         return true
     }
-    private func startRenewing() -> String? {
-        guard subscriptionStatus == .subscribed, subscriptionId != nil else { return nil }
-        subscriptionStatus = .renewing
-        return subscriptionId
+    @MainActor
+    private func cancelMaintenance() {
+        maintenanceTask?.cancel()
+        maintenanceTask = nil
+        // No subscription is wanted any more, so no events are expected either.
+        eventObserverTask?.cancel()
+        eventObserverTask = nil
     }
-    private func startUnubcribing() -> Bool {
-        guard subscriptionStatus == .subscribed, subscriptionId != nil else { return false }
-        subscriptionStatus = .unsubscribing
-        return true
+
+    /// Seconds to wait before retrying a subscription, per consecutive failure. The last value is
+    /// used for all further attempts.
+    private static let retryDelays = [1, 2, 5, 10, 20, 30]
+
+    /// Guards the state that is reached both from the maintenance loop and from the threads
+    /// events arrive on.
+    private let stateLock = NSLock()
+    private var _lastEventReceived: Date?
+    private var _subscriptionActiveSince: Date?
+    /// Watches the events of this service so that ``eventSilence`` keeps working whether or not
+    /// anybody is reading its state changes.
+    @MainActor
+    private var eventObserverTask: Task<Void, Never>?
+
+    /// When the last state change for this service was received, or nil if nothing was received
+    /// since the current subscription was established.
+    public var lastEventReceived: Date? {
+        stateLock.lock(); defer { stateLock.unlock() }; return _lastEventReceived
     }
-    private var bag = Set<AnyCancellable>()
-    
-    internal init(device: UPnPDevice, controlUrl: URL, scpdUrl: URL, eventUrl: URL?, serviceType: String, serviceId: String, eventStream: AsyncStream<(String, Data)>? = nil, eventCallbackUrl: URL? = nil) async {
+
+    /// How long this service has been silent: the time since the last state change was received,
+    /// or since the subscription was established when nothing has been received yet. Nil when
+    /// there is no active subscription, in which case silence is to be expected.
+    ///
+    /// A device reports the full state of a service right after subscribing, so silence that lasts
+    /// meaningfully longer than a subscription is young is a sign that events are not reaching us,
+    /// even though subscribing and renewing keep reporting success.
+    public var eventSilence: TimeInterval? {
+        stateLock.lock(); defer { stateLock.unlock() }
+
+        guard let reference = _lastEventReceived ?? _subscriptionActiveSince else { return nil }
+        return Date().timeIntervalSince(reference)
+    }
+
+    /// Separate from the loop that calls it, because the lock may not be taken from an async
+    /// context.
+    private func noteEventReceived() {
+        stateLock.lock()
+        _lastEventReceived = Date()
+        stateLock.unlock()
+    }
+
+    private func markSubscriptionActive() {
+        stateLock.lock()
+        _subscriptionActiveSince = Date()
+        _lastEventReceived = nil
+        stateLock.unlock()
+    }
+
+    private func markSubscriptionInactive() {
+        stateLock.lock()
+        _subscriptionActiveSince = nil
+        _lastEventReceived = nil
+        stateLock.unlock()
+    }
+
+    /// Record incoming events, so that a subscription that stopped delivering can be detected.
+    @MainActor
+    private func observeEventsIfNeeded() {
+        guard eventObserverTask == nil, let events else { return }
+
+        let stream = events.stream
+        eventObserverTask = Task { [weak self] in
+            for await event in stream {
+                guard let self else { return }
+                guard event.subscriptionId == self.subscriptionId else { continue }
+
+                self.noteEventReceived()
+            }
+        }
+    }
+
+    internal init(device: UPnPDevice, controlUrl: URL, scpdUrl: URL, eventUrl: URL?, serviceType: String, serviceId: String, events: AsyncBroadcaster<UPnPEvent>? = nil, eventCallbackUrl: URL? = nil) {
         self.device = device
         self.controlUrl = controlUrl
         self.scpdUrl = scpdUrl
         self.eventUrl = eventUrl
         self.serviceType = serviceType
         self.serviceId = serviceId
-        self.eventStream = eventStream
+        self.events = events
         self.eventCallbackUrl = eventCallbackUrl
-        id = "\(device.uuid)::\(serviceId)"
-        
-        if let eventStream = self.eventStream {
-            publishedEventStream = await eventDataBus.stream
-            
-            for await item in eventStream {
-                if item.0 == serviceId {
-                    await eventDataBus.emit(item.1)
-                }
-            }
-        }
-        else {
-            publishedEventStream = nil
-        }
     }
     
-    public static nonisolated func == (lhs: UPnPService, rhs: UPnPService) -> Bool {
+    public static func == (lhs: UPnPService, rhs: UPnPService) -> Bool {
         lhs.id == rhs.id
     }
     
-    public nonisolated func hash(into hasher: inout Hasher) {
+    public var id: String {
+        "\(device.uuid)::\(serviceId)"
+    }
+    
+    public func hash(into hasher: inout Hasher) {
         id.hash(into: &hasher)
     }
     
@@ -158,6 +300,12 @@ public actor UPnPService: Equatable, Identifiable, Hashable {
         request.setValue("text/xml; charset=\"utf-8\"", forHTTPHeaderField: "Content-Type")
         request.setValue("\"\(serviceType)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
         
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.timeoutInterval = 5
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.setValue("0", forHTTPHeaderField: "Expires")
+
         let encoder = XMLEncoder()
         let httpBody = try encoder.encode(envelope,
                                           withRootKey: "s:Envelope",
@@ -171,14 +319,55 @@ public actor UPnPService: Equatable, Identifiable, Hashable {
             Logger.swiftUPnP.info("Body(\(action)): \(httpBodyString)")
         }
         
-        let (_, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        if log == .response || log == .bodyAndResponse, let httpResponseBodyString = String(data: data, encoding: .utf8) {
+            Logger.swiftUPnP.info("Response Body(\(action)): \(httpResponseBodyString)")
+        }
+
+        // An action without output arguments still has to be checked: a device that refuses it answers
+        // with a SOAP fault, which would otherwise pass for success.
+        try Self.throwIfFault(action: action, data: data, response: response)
     }
     
+    /// Reports the SOAP fault a device answers with when it refuses an action.
+    ///
+    /// A fault comes back with an HTTP error status and a body carrying a UPnP error code and
+    /// description. Anything else is left alone, including a device that answers an error status with
+    /// a body that cannot be read.
+    private static func throwIfFault(action: String, data: Data, response: URLResponse) throws {
+        guard let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) else { return }
+
+        let body = String(data: data, encoding: .utf8) ?? ""
+        let code = value(ofElement: "errorCode", in: body) ?? "\(httpResponse.statusCode)"
+        let description = value(ofElement: "errorDescription", in: body)
+            ?? value(ofElement: "faultstring", in: body)
+            ?? "no description"
+
+        throw ServiceParseError.soapFault(action: action, code: code, description: description)
+    }
+
+    /// The text of the first element with the given name, namespace prefix or not.
+    private static func value(ofElement name: String, in xml: String) -> String? {
+        guard let range = xml.range(of: "<([a-zA-Z0-9]+:)?\\(name)[^>]*>", options: [.regularExpression]),
+              let end = xml.range(of: "</([a-zA-Z0-9]+:)?\\(name)>", options: [.regularExpression], range: range.upperBound..<xml.endIndex) else {
+            return nil
+        }
+
+        let value = String(xml[range.upperBound..<end.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
+
     internal func postWithResult<T: Decodable>(action: String, envelope: Codable, log: MessageLog = .none) async throws -> T {
         var request = URLRequest(url: controlUrl)
         request.httpMethod = "POST"
         request.setValue("text/xml; charset=\"utf-8\"", forHTTPHeaderField: "Content-Type")
         request.setValue("\"\(serviceType)#\(action)\"", forHTTPHeaderField: "SOAPACTION")
+        
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.timeoutInterval = 5
+        request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+        request.setValue("no-cache", forHTTPHeaderField: "Pragma")
+        request.setValue("0", forHTTPHeaderField: "Expires")
         
         let encoder = XMLEncoder()
         let httpBody = try encoder.encode(envelope,
@@ -193,97 +382,202 @@ public actor UPnPService: Equatable, Identifiable, Hashable {
             Logger.swiftUPnP.info("Body(\(action)): \(httpBodyString)")
         }
 
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
         if log == .response || log == .bodyAndResponse, let httpResponseBodyString = String(data: data, encoding: .utf8) {
             Logger.swiftUPnP.info("Response Body(\(action)): \(httpResponseBodyString)")
         }
-        
+
+        // Reported before decoding, so that a refusal says what the device objected to instead of
+        // surfacing as a response that could not be parsed.
+        try Self.throwIfFault(action: action, data: data, response: response)
+
         let decoder = XMLDecoder()
         decoder.shouldProcessNamespaces = false
         
         return try decoder.decode(T.self, from: data)
     }
     
+    /// Start receiving state changes for this service, and keep receiving them.
+    ///
+    /// The subscription is maintained until `unsubscribeFromEvents()` is called: renewals that fail
+    /// are retried, and a subscription that is rejected or lost is established anew. Calling this
+    /// on a service that is already maintaining a subscription does nothing.
     public func subscribeToEvents() async {
-        guard let eventUrl = eventUrl, let eventCallbackUrl = eventCallbackUrl else { return }
-        guard startSubcribing() else { return }
-        
+        guard eventUrl != nil else { return }
+
+        await observeEventsIfNeeded()
+        _ = await startMaintenanceIfNeeded()
+    }
+
+    /// Establish a fresh subscription, discarding the current one.
+    ///
+    /// Use this when events are known to no longer arrive even though the subscription looks
+    /// healthy: subscribing anew gets a new subscription id and makes the device report the full
+    /// state of the service again, which also confirms that events can reach us at all.
+    public func resubscribeToEvents() async {
+        guard eventUrl != nil else { return }
+
+        await cancelMaintenance()
+        await discardSubscription()
+        await subscribeToEvents()
+    }
+
+    /// Establish or renew the subscription once, and report how many seconds from now the next
+    /// renewal is due. Nil when the attempt failed, in which case the caller decides how long to
+    /// wait before trying again.
+    ///
+    /// Subscribing and renewing fail regularly in practice: a player reboots, a network hiccup
+    /// swallows a request, a device forgets a subscription or refuses a new one. None of that may
+    /// end the maintenance loop, because a subscription that is not restored means no more state
+    /// changes for the rest of the session.
+    private func performSubscriptionAttempt() async -> Int? {
+        let currentSubscriptionId = await subscriptionIdForRenewal()
+        let result = currentSubscriptionId == nil ? await sendSubscribe() : await sendRenew(subscriptionId: currentSubscriptionId!)
+
+        // A cancelled attempt is one that was replaced by a newer one (or by unsubscribing), and
+        // must not report its outcome over that of its successor.
+        guard Task.isCancelled == false else { return nil }
+
+        switch result {
+        case let .subscribed(subscriptionId, timeout):
+            if currentSubscriptionId != subscriptionId {
+                markSubscriptionActive()
+            }
+            await setSubcriptionStatus(.subscribed, subscriptionId: subscriptionId)
+
+            return Self.renewalDelay(forTimeout: timeout)
+        case .failed:
+            // Drop the subscription rather than renewing it again: it may no longer exist on the
+            // device, in which case only a new subscription recovers.
+            await discardSubscription()
+
+            return nil
+        }
+    }
+
+    @MainActor
+    private func subscriptionIdForRenewal() -> String? {
+        guard subscriptionStatus == .subscribed else { return nil }
+        return subscriptionId
+    }
+
+    private func discardSubscription() async {
+        markSubscriptionInactive()
+        await setSubcriptionStatus(.failed, subscriptionId: nil)
+    }
+
+    /// Renew well before the subscription expires, so a single failed renewal can still be retried
+    /// while the subscription is alive.
+    private static func renewalDelay(forTimeout timeout: Int) -> Int {
+        max(Int(Double(timeout) * 0.8), 5)
+    }
+
+    private enum SubscriptionResult {
+        case subscribed(subscriptionId: String, timeout: Int)
+        case failed
+    }
+
+    private func sendSubscribe() async -> SubscriptionResult {
+        guard let eventUrl, let eventCallbackUrl else {
+            Logger.swiftUPnP.error("Can't subscribe to \(self.serviceId) without a callback url to receive events on")
+            return .failed
+        }
+
+        await setSubcriptionStatus(.subscribing, subscriptionId: nil)
+
         var request = URLRequest(url: eventUrl)
         request.httpMethod = "SUBSCRIBE"
         request.setValue("text/xml", forHTTPHeaderField: "Content-Type")
         request.setValue("<\(eventCallbackUrl.absoluteString)>", forHTTPHeaderField: "CALLBACK")
         request.setValue("upnp:event", forHTTPHeaderField: "NT")
         request.setValue("Second-\(Self.defaultSubscriptionTimeout)", forHTTPHeaderField: "TIMEOUT")
-        
-        await subscribeOrRenew(request: request, type: "subscribed")
+
+        return await send(request: request, type: "subscribed")
     }
-    
-    internal func renewSubscriptionToEvents() async {
-        guard let eventUrl = eventUrl, let subscriptionId = startRenewing() else { return }
-        
+
+    private func sendRenew(subscriptionId: String) async -> SubscriptionResult {
+        guard let eventUrl else { return .failed }
+
+        await setSubcriptionStatus(.renewing, subscriptionId: subscriptionId)
+
         var request = URLRequest(url: eventUrl)
         request.httpMethod = "SUBSCRIBE"
         request.setValue("text/xml", forHTTPHeaderField: "Content-Type")
         request.setValue("\(subscriptionId)", forHTTPHeaderField: "SID")
         request.setValue("Second-\(Self.defaultSubscriptionTimeout)", forHTTPHeaderField: "TIMEOUT")
-        
-        await subscribeOrRenew(request: request, type: "renewed")
+
+        return await send(request: request, type: "renewed")
     }
-    
-    private func subscribeOrRenew(request: URLRequest, type: String) async {
+
+    private func send(request: URLRequest, type: String) async -> SubscriptionResult {
         await UPnPRegistry.shared.startHTTPServerIfNotRunning()
-        
+
         guard let (_, response) = try? await URLSession.shared.data(for: request) else {
             Logger.swiftUPnP.error("\(type) failed request \(request.url!.description)")
-            self.setSubcriptionStatus(.failed, subscriptionId: nil)
-            return
+            return .failed
         }
-        
-        guard (response as? HTTPURLResponse)?.statusCode ?? 0 >= 200,
-              (response as? HTTPURLResponse)?.statusCode ?? 0 <= 204 else {
-            Logger.swiftUPnP.error("\(type) failed, status = \((response as? HTTPURLResponse)?.statusCode ?? -1)")
-            self.setSubcriptionStatus(.failed, subscriptionId: nil)
-            await self.subscribeToEvents()
-            return
+
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+        guard statusCode >= 200, statusCode <= 204 else {
+            Logger.swiftUPnP.error("\(type) failed, status = \(statusCode)")
+            return .failed
         }
-        
-        if let typedHeaderFields = (response as? HTTPURLResponse)?.allHeaderFields as? [String: String] {
-            let headerFields = Dictionary(uniqueKeysWithValues: typedHeaderFields.map { key, value in (key.uppercased(), value) })
-            if let subscriptionId = headerFields["SID"],
-               let timeoutString = headerFields["TIMEOUT"],
-               let secondKeywordRange = timeoutString.range(of: "Second-"),
-               let timeout = Int(timeoutString[secondKeywordRange.upperBound...]) {
-                Logger.swiftUPnP.debug("Will renew sid: \(subscriptionId) at: \(Date(timeIntervalSinceNow: Double(timeout - 10)))")
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now().advanced(by: .seconds(timeout - 10))) { [weak self] in
-                    guard let self else { return }
-                    Task {
-                        await self.renewSubscriptionToEvents()
-                    }
-                }
-                
-                Logger.swiftUPnP.debug("Successfully \(type) for: \(timeout) seconds sid: \(subscriptionId)")
-                self.setSubcriptionStatus(.subscribed, subscriptionId: subscriptionId)
-            }
+
+        guard let typedHeaderFields = (response as? HTTPURLResponse)?.allHeaderFields as? [String: String] else {
+            Logger.swiftUPnP.error("\(type) failed, response without headers")
+            return .failed
         }
+
+        let headerFields = Dictionary(uniqueKeysWithValues: typedHeaderFields.map { key, value in (key.uppercased(), value) })
+        // Without a subscription id events can't be recognized as ours, so this is a failure even
+        // though the device reported success.
+        guard let subscriptionId = headerFields["SID"] else {
+            Logger.swiftUPnP.error("\(type) failed, response without a subscription id")
+            return .failed
+        }
+
+        // A device is allowed to answer with a timeout of "infinite", and some answer with a value
+        // that can't be read at all. Renew on our own schedule in that case, which also keeps
+        // checking that the device is still there.
+        var timeout = Self.defaultSubscriptionTimeout
+        if let timeoutString = headerFields["TIMEOUT"],
+           let secondKeywordRange = timeoutString.range(of: "Second-"),
+           let reportedTimeout = Int(timeoutString[secondKeywordRange.upperBound...]) {
+            timeout = reportedTimeout
+        }
+
+        Logger.swiftUPnP.debug("Successfully \(type) for: \(timeout) seconds sid: \(subscriptionId), will renew in \(Self.renewalDelay(forTimeout: timeout)) seconds")
+        return .subscribed(subscriptionId: subscriptionId, timeout: timeout)
     }
-    
+
     public func unsubscribeFromEvents() async {
-        guard let eventUrl = eventUrl, startUnubcribing() else { return }
-        
+        await cancelMaintenance()
+
+        guard let eventUrl, let subscriptionId = subscriptionId else {
+            await setSubcriptionStatus(.unsubscribed, subscriptionId: nil)
+            markSubscriptionInactive()
+            return
+        }
+
+        await setSubcriptionStatus(.unsubscribing, subscriptionId: subscriptionId)
+        markSubscriptionInactive()
+
         var request = URLRequest(url: eventUrl)
         request.httpMethod = "UNSUBSCRIBE"
         request.setValue("text/xml", forHTTPHeaderField: "Content-Type")
         request.setValue(subscriptionId, forHTTPHeaderField: "SID")
-        
-        guard let (_, response) = try? await URLSession.shared.data(for: request),
-              (response as? HTTPURLResponse)?.statusCode ?? 0 >= 200,
-              (response as? HTTPURLResponse)?.statusCode ?? 0 <= 204 else {
-            Logger.swiftUPnP.error("Unsuccessfully unsubscribed sid: \(self.subscriptionId ?? "-")")
-            self.setSubcriptionStatus(.failed, subscriptionId: nil)
-            return
+
+        // The subscription is gone as far as we are concerned either way: if the device didn't get
+        // the message it drops the subscription when it expires.
+        if let (_, response) = try? await URLSession.shared.data(for: request),
+           (200...204).contains((response as? HTTPURLResponse)?.statusCode ?? -1) {
+            Logger.swiftUPnP.debug("Successfully unsubscribed sid: \(subscriptionId)")
         }
-        
-        Logger.swiftUPnP.debug("Successfully unsubscribed sid: \(self.subscriptionId ?? "-")")
-        self.setSubcriptionStatus(.unsubscribed, subscriptionId: nil)
+        else {
+            Logger.swiftUPnP.error("Unsuccessfully unsubscribed sid: \(subscriptionId)")
+        }
+
+        await setSubcriptionStatus(.unsubscribed, subscriptionId: nil)
     }
+
 }

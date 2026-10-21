@@ -23,7 +23,6 @@
 //
 
 import Foundation
-import Combine
 import XMLCoder
 import os.log
 
@@ -36,7 +35,7 @@ public class RenderingControl1Service: UPnPService, @unchecked Sendable {
 		var body: T
 	}
 
-	public enum A_ARG_TYPE_ChannelEnum: String, Codable {
+	public enum A_ARG_TYPE_ChannelEnum: String, Codable, Sendable {
 		case master = "Master"
 		case lf = "LF"
 		case rf = "RF"
@@ -54,7 +53,7 @@ public class RenderingControl1Service: UPnPService, @unchecked Sendable {
 		case vendorDefined = "Vendor defined"
 	}
 
-	public enum A_ARG_TYPE_PresetNameEnum: String, Codable {
+	public enum A_ARG_TYPE_PresetNameEnum: String, Codable, Sendable {
 		case factoryDefaults = "FactoryDefaults"
 		case installationDefaults = "InstallationDefaults"
 		case vendorDefined = "Vendor defined"
@@ -1143,7 +1142,7 @@ public class RenderingControl1Service: UPnPService, @unchecked Sendable {
 
 // Event parser
 extension RenderingControl1Service {
-	public struct State: Codable {
+	public struct State: Codable, Sendable {
 		enum CodingKeys: String, CodingKey {
 			case lastChange = "LastChange"
 		}
@@ -1175,17 +1174,7 @@ extension RenderingControl1Service {
 		}
 	}
 
-	public var stateSubject: AnyPublisher<State, Never> {
-		subscribedEventPublisher
-			.compactMap { [weak self] in
-				guard let self else { return nil }
-
-				return try? self.state(xml: $0)
-			}
-			.eraseToAnyPublisher()
-	}
-
 	public var stateChangeStream: AsyncStream<State> {
-		stateSubject.stream
+		stateStream { [weak self] in try? self?.state(xml: $0) }
 	}
 }

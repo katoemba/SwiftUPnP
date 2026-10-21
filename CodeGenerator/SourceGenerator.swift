@@ -45,7 +45,6 @@ extension scdp {
         var code = ""
         
         code += "import Foundation\n"
-        //code += "import Combine\n"
         code += "import XMLCoder\n"
         code += "import os.log\n"
         code += "\n"
@@ -66,7 +65,7 @@ extension scdp {
         
         for enumVariable in serviceStateTable.stateVariable {
             if enumVariable.useEnum {
-                code += "\tpublic enum \(enumVariable.swiftType): String, Codable {\n"
+                code += "\tpublic enum \(enumVariable.swiftType): String, Codable, Sendable {\n"
                 for value in enumVariable.allowedValueList?.allowedValue ?? [] {
                     code += "\t\tcase \(value.processCase()) = \"\(value)\"\n"
                 }
@@ -227,8 +226,6 @@ extension scdp {
         code += "\n"
         code += generateStateFunc(serviceName: serviceName)
         code += "\n"
-//        code += generateStateSubject()
-//        code += "\n"
         code += generateStateChangeStream()
         code += "}\n"
 
@@ -304,27 +301,12 @@ extension scdp {
         return code
     }
     
-    func generateStateSubject() -> String {
-        var code = ""
-
-        code += "\tpublic var stateSubject: AnyPublisher<State, Never> {\n"
-        code += "\t\tsubscribedEventPublisher\n"
-        code += "\t\t\t.compactMap { [weak self] in\n"
-        code += "\t\t\t\tguard let self else { return nil }\n"
-        code += "\n"
-        code += "\t\t\t\treturn try? self.state(xml: $0)\n"
-        code += "\t\t\t}\n"
-        code += "\t\t\t.eraseToAnyPublisher()\n"
-        code += "\t}\n"
-
-        return code
-    }
     
     func generateStateChangeStream() -> String {
         var code = ""
         
         code += "\tpublic var stateChangeStream: AsyncStream<State> {\n"
-        code += "\t\tstateSubject.stream\n"
+        code += "\t\tstateStream { [weak self] in try? self?.state(xml: $0) }\n"
         code += "\t}\n"
 
         return code

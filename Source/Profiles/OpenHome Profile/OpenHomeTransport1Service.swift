@@ -23,7 +23,6 @@
 //
 
 import Foundation
-import Combine
 import XMLCoder
 import os.log
 
@@ -36,7 +35,7 @@ public class OpenHomeTransport1Service: UPnPService, @unchecked Sendable {
 		var body: T
 	}
 
-	public enum TransportStateEnum: String, Codable {
+	public enum TransportStateEnum: String, Codable, Sendable {
 		case playing = "Playing"
 		case paused = "Paused"
 		case stopped = "Stopped"
@@ -511,7 +510,7 @@ public class OpenHomeTransport1Service: UPnPService, @unchecked Sendable {
 
 // Event parser
 extension OpenHomeTransport1Service {
-	public struct State: Codable {
+	public struct State: Codable, Sendable {
 		enum CodingKeys: String, CodingKey {
 			case modes = "Modes"
 			case canSkipNext = "CanSkipNext"
@@ -603,17 +602,7 @@ extension OpenHomeTransport1Service {
 		}
 	}
 
-	public var stateSubject: AnyPublisher<State, Never> {
-		subscribedEventPublisher
-			.compactMap { [weak self] in
-				guard let self else { return nil }
-
-				return try? self.state(xml: $0)
-			}
-			.eraseToAnyPublisher()
-	}
-
 	public var stateChangeStream: AsyncStream<State> {
-		stateSubject.stream
+		stateStream { [weak self] in try? self?.state(xml: $0) }
 	}
 }

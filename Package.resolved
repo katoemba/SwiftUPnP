@@ -3,7 +3,7 @@
     {
       "identity" : "cocoaasyncsocket",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/robbiehanson/CocoaAsyncSocket",
+      "location" : "https://github.com/robbiehanson/CocoaAsyncSocket.git",
       "state" : {
         "branch" : "master",
         "revision" : "5ddba5e72f38e56010dbfac08b44478ee5000c0c"
@@ -16,15 +16,6 @@
       "state" : {
         "revision" : "95fa785c751f6bc40c49e112d433c3acf8417a97",
         "version" : "3.0.2"
-      }
-    },
-    {
-      "identity" : "swifter",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/httpswift/swifter",
-      "state" : {
-        "branch" : "stable",
-        "revision" : "1e4f51c92d7ca486242d8bf0722b99de2c3531aa"
       }
     },
     {

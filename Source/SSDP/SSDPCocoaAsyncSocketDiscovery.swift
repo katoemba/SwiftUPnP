@@ -25,39 +25,93 @@
 //
 
 import Foundation
-import Combine
 import CocoaAsyncSocket
+import Network
 import os.log
 
 class SSDPCocoaAsyncSocketDiscovery: SSDPDiscovery {
     private var multicastSocket: GCDAsyncUdpSocket?
-    
+    /// Bumped on every start and stop, so work scheduled for an earlier session (repeated searches, reopening the
+    /// socket) is dropped.
+    private var generation = 0
+    private var pathMonitor: NWPathMonitor?
+    /// The pending reopen, so that a burst of network changes leads to one reopen.
+    private var reopenWorkItem: DispatchWorkItem?
+    /// The repeated searches of the last searchRequest.
+    private var searchWorkItems = [DispatchWorkItem]()
+    /// The first update of a path monitor only reports the current situation, not a change.
+    private var hasSeenFirstPathUpdate = false
+
     func startDiscovery(forTypes types: [String]) throws {
         guard multicastSocket == nil else { throw UPnPError.alreadyConnected }
+
+        self.types = types
+        generation += 1
+        startMonitoringNetworkChanges()
+        do {
+            try openSocket()
+        }
+        catch {
+            // Typically there is no network yet (e.g. the app starts before Wi-Fi is up). Keep trying, rather than
+            // not discovering anything for the rest of the session.
+            Logger.swiftUPnP.error("Could not open the SSDP socket: \(error.localizedDescription)")
+            reopenSocket(after: 5)
+        }
+    }
+    
+    func stopDiscovery() {
+        generation += 1
+        reopenWorkItem?.cancel()
+        reopenWorkItem = nil
+        searchWorkItems.forEach { $0.cancel() }
+        searchWorkItems = []
+        pathMonitor?.cancel()
+        pathMonitor = nil
+        types = []
+        guard let multicastSocket = multicastSocket else { return }
         
+        // Cleared before closing, so the close callback knows the socket was closed on purpose.
+        self.multicastSocket = nil
+        multicastSocket.close()
+    }
+    
+    func searchRequest() {
+        sendSearchRequests()
+
+        // A single M-SEARCH over UDP is easily lost, and fails outright while the system is still asking for access
+        // to the local network. Repeat it a few times.
+        searchWorkItems.forEach { $0.cancel() }
+        searchWorkItems = [3.0, 10.0].map { delay in
+            let workItem = DispatchWorkItem { [weak self] in
+                self?.sendSearchRequests()
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+            return workItem
+        }
+    }
+
+    private func openSocket() throws {
         let multicastSocket = GCDAsyncUdpSocket(delegate: self, delegateQueue: DispatchQueue.main)
         multicastSocket.setIPv4Enabled(true)
         multicastSocket.setIPv6Enabled(true)
 
-        try multicastSocket.enableReusePort(true)
-        try multicastSocket.enableBroadcast(true)
-        try multicastSocket.bind(toPort: multicastUDPPort)
-        try multicastSocket.joinMulticastGroup(multicastGroupAddress)
-        try multicastSocket.beginReceiving()
+        do {
+            try multicastSocket.enableReusePort(true)
+            try multicastSocket.enableBroadcast(true)
+            try multicastSocket.bind(toPort: multicastUDPPort)
+            try multicastSocket.joinMulticastGroup(multicastGroupAddress)
+            try multicastSocket.beginReceiving()
+        }
+        catch {
+            // Not stored yet, so the close callback ignores it.
+            multicastSocket.close()
+            throw error
+        }
 
-        self.types = types
         self.multicastSocket = multicastSocket
     }
-    
-    func stopDiscovery() {
-        guard let multicastSocket = multicastSocket else { return }
-        
-        multicastSocket.close()
-        self.multicastSocket = nil
-        types = []
-    }
-    
-    func searchRequest() {
+
+    private func sendSearchRequests() {
         guard let multicastSocket = multicastSocket else { return }
 
         for type in types {
@@ -66,15 +120,66 @@ class SSDPCocoaAsyncSocketDiscovery: SSDPDiscovery {
             }
         }
     }
+
+    /// Open a new socket and search again, after the old one closed without being asked to (e.g. the network went
+    /// away), or after a network change (the multicast group has to be joined on the new interface).
+    private func reopenSocket(after delay: TimeInterval) {
+        reopenWorkItem?.cancel()
+        let generation = self.generation
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self, self.generation == generation, !self.types.isEmpty else { return }
+            if let multicastSocket = self.multicastSocket {
+                self.multicastSocket = nil
+                multicastSocket.close()
+            }
+            do {
+                try self.openSocket()
+                self.searchRequest()
+            }
+            catch {
+                Logger.swiftUPnP.error("Could not reopen the SSDP socket: \(error.localizedDescription)")
+                self.reopenSocket(after: 5)
+            }
+        }
+        reopenWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+    }
+
+    private func startMonitoringNetworkChanges() {
+        pathMonitor?.cancel()
+        hasSeenFirstPathUpdate = false
+        let monitor = NWPathMonitor()
+        // Updates arrive on the queue the monitor is started on, which is the main queue.
+        monitor.pathUpdateHandler = { [weak self] path in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                // The first update only reports the current situation.
+                guard self.hasSeenFirstPathUpdate else {
+                    self.hasSeenFirstPathUpdate = true
+                    return
+                }
+                guard path.status == .satisfied else { return }
+                self.reopenSocket(after: 1)
+            }
+        }
+        monitor.start(queue: DispatchQueue.main)
+        pathMonitor = monitor
+    }
 }
 
-extension SSDPCocoaAsyncSocketDiscovery: GCDAsyncUdpSocketDelegate {
+// The socket is created with the main queue as its delegate queue, so these all arrive on the main
+// actor; `@preconcurrency` is what lets a main actor-isolated type satisfy the Objective-C protocol.
+extension SSDPCocoaAsyncSocketDiscovery: @preconcurrency GCDAsyncUdpSocketDelegate {
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didNotSendDataWithTag tag: Int, dueToError error: Error?) {
-        stopDiscovery()
+        // Not a reason to give up: searches are repeated, and the socket still receives announcements.
+        Logger.swiftUPnP.error("Could not send SSDP search: \(error?.localizedDescription ?? "unknown error")")
     }
     
     public func udpSocketDidClose(_ sock: GCDAsyncUdpSocket, withError error: Error?) {
-        stopDiscovery()
+        // Closed by stopDiscovery or reopenSocket: nothing to do.
+        guard sock === multicastSocket else { return }
+        multicastSocket = nil
+        reopenSocket(after: 2)
     }
     
     public func udpSocket(_ sock: GCDAsyncUdpSocket, didReceive data: Data, fromAddress address: Data, withFilterContext filterContext: Any?) {

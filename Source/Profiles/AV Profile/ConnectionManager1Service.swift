@@ -23,7 +23,6 @@
 //
 
 import Foundation
-import Combine
 import XMLCoder
 import os.log
 
@@ -36,7 +35,7 @@ public class ConnectionManager1Service: UPnPService, @unchecked Sendable {
 		var body: T
 	}
 
-	public enum A_ARG_TYPE_ConnectionStatusEnum: String, Codable {
+	public enum A_ARG_TYPE_ConnectionStatusEnum: String, Codable, Sendable {
 		case ok = "OK"
 		case contentFormatMismatch = "ContentFormatMismatch"
 		case insufficientBandwidth = "InsufficientBandwidth"
@@ -44,7 +43,7 @@ public class ConnectionManager1Service: UPnPService, @unchecked Sendable {
 		case unknown = "Unknown"
 	}
 
-	public enum A_ARG_TYPE_DirectionEnum: String, Codable {
+	public enum A_ARG_TYPE_DirectionEnum: String, Codable, Sendable {
 		case input = "Input"
 		case output = "Output"
 	}
@@ -184,7 +183,7 @@ public class ConnectionManager1Service: UPnPService, @unchecked Sendable {
 
 // Event parser
 extension ConnectionManager1Service {
-	public struct State: Codable {
+	public struct State: Codable, Sendable {
 		enum CodingKeys: String, CodingKey {
 			case sourceProtocolInfo = "SourceProtocolInfo"
 			case sinkProtocolInfo = "SinkProtocolInfo"
@@ -228,17 +227,7 @@ extension ConnectionManager1Service {
 		}
 	}
 
-	public var stateSubject: AnyPublisher<State, Never> {
-		subscribedEventPublisher
-			.compactMap { [weak self] in
-				guard let self else { return nil }
-
-				return try? self.state(xml: $0)
-			}
-			.eraseToAnyPublisher()
-	}
-
 	public var stateChangeStream: AsyncStream<State> {
-		stateSubject.stream
+		stateStream { [weak self] in try? self?.state(xml: $0) }
 	}
 }

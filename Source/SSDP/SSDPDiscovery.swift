@@ -40,7 +40,8 @@ enum SSDPMessageType: String {
     case unavailableNotification
 }
 
-class SSDPDiscovery: NSObject, Sendable {
+@MainActor
+class SSDPDiscovery: NSObject {
     let multicastGroupAddress = "239.255.255.250"
     let multicastUDPPort: UInt16 = 1900
     var types = [String]()
@@ -55,32 +56,28 @@ class SSDPDiscovery: NSObject, Sendable {
     }
     
     func handleSSDPMessage(_ messageType: SSDPMessageType, headers: [String: String]) {
-        if let usnRawValue = headers["usn"] {
-            let usnComponents = usnRawValue.components(separatedBy: "::")
-            if usnComponents.count == 2,
-               let locationString = headers["location"],
-               let locationURL = URL(string: locationString),
-               /// NT = Notification Type - SSDP discovered from device advertisements
-               /// ST = Search Target - SSDP discovered as a result of using M-SEARCH requests
-                let ssdpType = (headers["st"] != nil ? headers["st"] : headers["nt"]) {
-                
-                let uuid = usnComponents[0]
-                let deviceId = usnComponents[1]
-
-                if types.contains(ssdpType) {
-                    if messageType == .unavailableNotification {
-                        Task {
-                            await UPnPRegistry.shared.remove(UPnPDevice(uuid: uuid, deviceId: deviceId, deviceType: ssdpType, url: locationURL, lastSeen: Date()))
-                        }
-                    }
-                    else {
-                        Task {
-                            await UPnPRegistry.shared.add(UPnPDevice(uuid: uuid, deviceId: deviceId, deviceType: ssdpType, url: locationURL, lastSeen: Date()))
-                        }
-                    }
-                }
-            }
+        guard let device = device(from: headers) else { return }
+        if messageType == .unavailableNotification {
+            UPnPRegistry.shared.remove(device)
         }
+        else {
+            UPnPRegistry.shared.add(device)
+        }
+    }
+
+    /// The device a message is about, when it is one of the types searched for.
+    func device(from headers: [String: String]) -> UPnPDevice? {
+        guard let usnRawValue = headers["usn"] else { return nil }
+        let usnComponents = usnRawValue.components(separatedBy: "::")
+        guard usnComponents.count == 2,
+              let locationString = headers["location"],
+              let locationURL = URL(string: locationString),
+              /// NT = Notification Type - SSDP discovered from device advertisements
+              /// ST = Search Target - SSDP discovered as a result of using M-SEARCH requests
+              let ssdpType = (headers["st"] != nil ? headers["st"] : headers["nt"]),
+              types.contains(ssdpType) else { return nil }
+
+        return UPnPDevice(uuid: usnComponents[0], deviceId: usnComponents[1], deviceType: ssdpType, url: locationURL, lastSeen: Date())
     }
     
     func processData(_ data: Data) {
@@ -109,7 +106,9 @@ class SSDPDiscovery: NSObject, Sendable {
                 case ("NOTIFY * HTTP/1.1", .some(let notificationType)) where notificationType == "ssdp:update":
                     handleSSDPMessage(.updateNotification, headers: headers)
                 case ("NOTIFY * HTTP/1.1", .some(let notificationType)) where notificationType == "ssdp:byebye":
-                    headers["location"] = headers["host"] // byebye messages don't have a location
+                    // Byebye messages don't have a location, and a device is removed by its id only. The host
+                    // header (the multicast address) is only a stand-in, and needs a scheme to make a valid URL.
+                    headers["location"] = "http://\(headers["host"] ?? "\(multicastGroupAddress):\(multicastUDPPort)")"
                     handleSSDPMessage(.unavailableNotification, headers: headers)
                 default:
                     return

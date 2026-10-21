@@ -26,7 +26,6 @@
 
 import Foundation
 import Network
-import Combine
 import os.log
 
 class SSDPNetworkDiscovery: SSDPDiscovery {
@@ -40,6 +39,7 @@ class SSDPNetworkDiscovery: SSDPDiscovery {
         params.allowLocalEndpointReuse = true
         let connectionGroup = NWConnectionGroup(with: multicastGroup, using: params)
         
+        // The handlers below run on the queue the group is started on, which is the main queue.
         connectionGroup.stateUpdateHandler = { [weak self] (newState) in
             Logger.swiftUPnP.debug("Connection group entered state \(String(describing: newState))")
             
@@ -47,15 +47,19 @@ class SSDPNetworkDiscovery: SSDPDiscovery {
             case let .failed(error):
                 Logger.swiftUPnP.error("\(error.localizedDescription)")
             case .cancelled:
-                self?.multicastGroup = nil
-                self?.connectionGroup = nil
+                MainActor.assumeIsolated {
+                    self?.multicastGroup = nil
+                    self?.connectionGroup = nil
+                }
             default:
                 break
             }
         }
-        connectionGroup.setReceiveHandler(maximumMessageSize: 65535, rejectOversizedMessages: true) { (message, content, isComplete) in
+        connectionGroup.setReceiveHandler(maximumMessageSize: 65535, rejectOversizedMessages: true) { [weak self] (message, content, isComplete) in
             if let content = content {
-                self.processData(content)
+                MainActor.assumeIsolated {
+                    self?.processData(content)
+                }
             }
         }
         

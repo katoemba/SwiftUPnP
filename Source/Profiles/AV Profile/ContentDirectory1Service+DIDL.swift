@@ -267,7 +267,7 @@ public struct DIDLRes: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
                 size: UInt64? = nil, duration:
                 String? = nil,
                 bitrate: UInt? = nil,
-                sampleFrequency: UInt? = nil,
+                sampleFrequency: String? = nil,
                 bitsPerSample: UInt? = nil,
                 nrAudioChannels: UInt? = nil,
                 colorDepth: UInt? = nil,
@@ -308,7 +308,7 @@ public struct DIDLRes: Codable, DynamicNodeDecoding, DynamicNodeEncoding {
     public let size: UInt64?
     public let duration: String?
     public let bitrate: UInt?
-    public let sampleFrequency: UInt?
+    public let sampleFrequency:String?
     public let bitsPerSample: UInt?
     public let nrAudioChannels: UInt?
     public let colorDepth: UInt?

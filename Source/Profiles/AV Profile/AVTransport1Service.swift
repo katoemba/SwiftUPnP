@@ -23,7 +23,6 @@
 //
 
 import Foundation
-import Combine
 import XMLCoder
 import os.log
 
@@ -36,7 +35,7 @@ public class AVTransport1Service: UPnPService, @unchecked Sendable {
 		var body: T
 	}
 
-	public enum TransportStateEnum: String, Codable {
+	public enum TransportStateEnum: String, Codable, Sendable {
 		case stopped = "STOPPED"
 		case pausedPlayback = "PAUSED_PLAYBACK"
 		case pausedRecording = "PAUSED_RECORDING"
@@ -46,13 +45,13 @@ public class AVTransport1Service: UPnPService, @unchecked Sendable {
 		case noMediaPresent = "NO_MEDIA_PRESENT"
 	}
 
-	public enum TransportStatusEnum: String, Codable {
+	public enum TransportStatusEnum: String, Codable, Sendable {
 		case ok = "OK"
 		case errorOccurred = "ERROR_OCCURRED"
 		case vendorDefined = "vendor-defined"
 	}
 
-	public enum PlaybackStorageMediumEnum: String, Codable {
+	public enum PlaybackStorageMediumEnum: String, Codable, Sendable {
 		case unknown = "UNKNOWN"
 		case dv = "DV"
 		case miniDv = "MINI-DV"
@@ -88,7 +87,7 @@ public class AVTransport1Service: UPnPService, @unchecked Sendable {
 		case vendorDefined = "vendor-defined"
 	}
 
-	public enum RecordStorageMediumEnum: String, Codable {
+	public enum RecordStorageMediumEnum: String, Codable, Sendable {
 		case unknown = "UNKNOWN"
 		case dv = "DV"
 		case miniDv = "MINI-DV"
@@ -124,7 +123,7 @@ public class AVTransport1Service: UPnPService, @unchecked Sendable {
 		case vendorDefined = "vendor-defined"
 	}
 
-	public enum CurrentPlayModeEnum: String, Codable {
+	public enum CurrentPlayModeEnum: String, Codable, Sendable {
 		case normal = "NORMAL"
 		case shuffle = "SHUFFLE"
 		case repeatOne = "REPEAT_ONE"
@@ -134,12 +133,12 @@ public class AVTransport1Service: UPnPService, @unchecked Sendable {
 		case intro = "INTRO"
 	}
 
-	public enum TransportPlaySpeedEnum: String, Codable {
+	public enum TransportPlaySpeedEnum: String, Codable, Sendable {
 		case one = "1"
 		case vendorDefined = "vendor-defined"
 	}
 
-	public enum RecordMediumWriteStatusEnum: String, Codable {
+	public enum RecordMediumWriteStatusEnum: String, Codable, Sendable {
 		case writable = "WRITABLE"
 		case protected = "PROTECTED"
 		case notWritable = "NOT_WRITABLE"
@@ -147,7 +146,7 @@ public class AVTransport1Service: UPnPService, @unchecked Sendable {
 		case notImplemented = "NOT_IMPLEMENTED"
 	}
 
-	public enum CurrentRecordQualityModeEnum: String, Codable {
+	public enum CurrentRecordQualityModeEnum: String, Codable, Sendable {
 		case zeroEp = "0:EP"
 		case oneLp = "1:LP"
 		case twoSp = "2:SP"
@@ -158,7 +157,7 @@ public class AVTransport1Service: UPnPService, @unchecked Sendable {
 		case vendorDefined = "vendor-defined"
 	}
 
-	public enum A_ARG_TYPE_SeekModeEnum: String, Codable {
+	public enum A_ARG_TYPE_SeekModeEnum: String, Codable, Sendable {
 		case absTime = "ABS_TIME"
 		case relTime = "REL_TIME"
 		case absCount = "ABS_COUNT"
@@ -699,7 +698,7 @@ public class AVTransport1Service: UPnPService, @unchecked Sendable {
 
 // Event parser
 extension AVTransport1Service {
-	public struct State: Codable {
+	public struct State: Codable, Sendable {
 		enum CodingKeys: String, CodingKey {
 			case lastChange = "LastChange"
 		}
@@ -731,17 +730,7 @@ extension AVTransport1Service {
 		}
 	}
 
-	public var stateSubject: AnyPublisher<State, Never> {
-		subscribedEventPublisher
-			.compactMap { [weak self] in
-				guard let self else { return nil }
-
-				return try? self.state(xml: $0)
-			}
-			.eraseToAnyPublisher()
-	}
-
 	public var stateChangeStream: AsyncStream<State> {
-		stateSubject.stream
+		stateStream { [weak self] in try? self?.state(xml: $0) }
 	}
 }

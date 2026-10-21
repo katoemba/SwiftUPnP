@@ -10,7 +10,6 @@
 import XCTest
 @testable import SwiftUPnP
 import Mocker
-import Combine
 
 final class MockedData {
     public static let openHomeRendererXML: URL = Bundle.module.url(forResource: "OpenHomeRendererDevice", withExtension: "xml")!
@@ -56,7 +55,7 @@ extension Mock.DataType {
 final class SwiftUPnPTests: XCTestCase {
     let openHomeBase = "http://10.0.0.125:44401/dev/f4fe91fd-dfe2-07ed-ffff-ffffd91a1d9a"
     let mediaServerBase = "http://10.0.0.125:44402/uuid-cca7c79e-ae0d-f745-afa4-e45f01e9f574"
-    var cancellables = Set<AnyCancellable>()
+    private var deviceWatcher: Task<Void, Never>?
     
     override func setUpWithError() throws {
         let configuration = URLSessionConfiguration.default
@@ -81,7 +80,25 @@ final class SwiftUPnPTests: XCTestCase {
     
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
-        cancellables.removeAll()
+        deviceWatcher?.cancel()
+        deviceWatcher = nil
+    }
+
+    /// Reanimating a device must not announce it to whoever is listening for discovered devices:
+    /// it was never discovered, and nothing holds it but the caller.
+    @MainActor
+    private func expectNoDeviceIsAdded() -> XCTestExpectation {
+        let expectation = XCTestExpectation(description: "No device is being added")
+        expectation.isInverted = true
+
+        let stream = UPnPRegistry.shared.deviceAddedStream
+        deviceWatcher = Task {
+            for await _ in stream {
+                expectation.fulfill()
+            }
+        }
+
+        return expectation
     }
     
     @MainActor
@@ -92,14 +109,8 @@ final class SwiftUPnPTests: XCTestCase {
                                                       url: URL(string: "\(openHomeBase)/desc.xml")!,
                                                       lastSeen: Date())
         
-        let noDeviceAddedExpectation = XCTestExpectation(description: "No device is being added")
-        noDeviceAddedExpectation.isInverted = true
-        UPnPRegistry.shared.deviceAdded
-            .sink { _ in
-                noDeviceAddedExpectation.fulfill()
-            }
-            .store(in: &cancellables)
-        
+        let noDeviceAddedExpectation = expectNoDeviceIsAdded()
+
         let player = await UPnPDevice.reanimateDeep(upnpDeviceDescription: playerDescription)
         XCTAssertNotNil(player, "player not loaded")
         XCTAssertEqual(player!.services.count, 8)
@@ -117,14 +128,8 @@ final class SwiftUPnPTests: XCTestCase {
     
     @MainActor
     func testReanimateMediaServer() async throws {
-        let noDeviceAddedExpectation = XCTestExpectation(description: "No device is being added")
-        noDeviceAddedExpectation.isInverted = true
-        UPnPRegistry.shared.deviceAdded
-            .sink { _ in
-                noDeviceAddedExpectation.fulfill()
-            }
-            .store(in: &cancellables)
-        
+        let noDeviceAddedExpectation = expectNoDeviceIsAdded()
+
         let mediaServerDescription = UPnPDeviceDescription(uuid: "uuid:cca7c79e-ae0d-f745-afa4-e45f01e9f574",
                                                       deviceId: "urn:schemas-upnp-org:device:MediaServer:1",
                                                       deviceType: "urn:schemas-upnp-org:device:MediaServer:1",
